@@ -19,8 +19,8 @@ bool testEqualityEx(Expression exA, Expression exB, unsigned int unExpectedResol
 
 
 bool testEquality(std::string strA, std::string strB, unsigned int unExpectedResolutions) {
-  return testEqualityEx(g_gdapPlanner->simpleExpression(strA),
-			g_gdapPlanner->simpleExpression(strB),
+  return testEqualityEx(Expression(Expression::parseString(strA)),
+			Expression(Expression::parseString(strB)),
 			unExpectedResolutions);
 }
 
@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
   int nReturnvalue = EXIT_FAILURE;
   
   g_gdapPlanner = GDAPlanner::create();
-  g_gdapPlanner->pushContext("test");
+  g_gdapPlanner->pushContext<contexts::PDDL>("test");
   
   if(// Positive
      testEquality("(?a)", "(A)", 1) &&

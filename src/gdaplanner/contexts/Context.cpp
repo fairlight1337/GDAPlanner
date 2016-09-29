@@ -1,9 +1,8 @@
-#include <gdaplanner/Context.h>
+#include <gdaplanner/contexts/Context.h>
 
 
 namespace gdaplanner {
   Context::Context(std::string strIdentifier) : m_strIdentifier(strIdentifier) {
-    this->pushWorld();
   }
   
   Context::~Context() {
@@ -25,10 +24,6 @@ namespace gdaplanner {
     m_vecStates.push_back(State::create(exState, exPreconditions));
   }
   
-  void Context::fact(Expression exFact) {
-    this->currentWorld()->assertFact(exFact);
-  }
-  
   std::vector<State::Ptr> Context::matchingStates(Expression exMatch) {
     std::vector<State::Ptr> vecMatches;
     
@@ -39,39 +34,6 @@ namespace gdaplanner {
     }
     
     return vecMatches;
-  }
-  
-  
-  World::Ptr Context::pushWorld() {
-    World::Ptr wdPush = nullptr;
-    
-    if(m_dqWorlds.size() == 0) {
-      wdPush = World::create();
-    } else {
-      wdPush = this->currentWorld()->copy();
-    }
-    
-    m_dqWorlds.push_front(wdPush);
-    
-    return wdPush;
-  }
-  
-  bool Context::popWorld() {
-    if(m_dqWorlds.size() > 0) {
-      m_dqWorlds.pop_front();
-      
-      return true;
-    }
-    
-    return false;
-  }
-  
-  World::Ptr Context::currentWorld() {
-    if(m_dqWorlds.size() > 0) {
-      return m_dqWorlds.front();
-    }
-    
-    return nullptr;
   }
   
   std::string Context::toString() {
@@ -105,11 +67,6 @@ namespace gdaplanner {
       for(State::Ptr stCurrent : m_vecStates) {
 	sts << " * " << *stCurrent << std::endl;
       }
-    }
-    
-    if(m_dqWorlds.size() > 0) {
-      sts << std::endl << "World:" << std::endl;
-      sts << *(this->currentWorld()) << std::endl;
     }
     
     return sts.str();

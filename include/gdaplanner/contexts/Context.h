@@ -13,7 +13,6 @@
 #include <gdaplanner/Action.h>
 #include <gdaplanner/State.h>
 #include <gdaplanner/Expression.h>
-#include <gdaplanner/World.h>
 #include <gdaplanner/Printable.h>
 
 
@@ -30,24 +29,17 @@ namespace gdaplanner {
     std::vector<Action::Ptr> m_vecActions;
     std::vector<State::Ptr> m_vecStates;
     
-    std::deque<World::Ptr> m_dqWorlds;
-    
   protected:
   public:
-    Context(std::string strIdentifier);
+    Context(std::string strIdentifier = "");
     ~Context();
     
     void declare(std::string strIdentifier, Expression expDeclare);
     void alias(Expression exAlias, std::vector<Expression> vecAliased);
     void action(Expression exAction, Expression exPreconditions, Expression exEffects);
     void state(Expression exState, Expression exPreconditions);
-    void fact(Expression exFacts);
     
     std::vector<State::Ptr> matchingStates(Expression exMatch);    
-    
-    World::Ptr pushWorld();
-    bool popWorld();
-    World::Ptr currentWorld();
     
     virtual std::string toString() override;
     

@@ -8,8 +8,12 @@
 #include <fstream>
 #include <streambuf>
 
-#include <gdaplanner/Context.h>
+#include <gdaplanner/contexts/Context.h>
 #include <gdaplanner/World.h>
+
+#include <gdaplanner/contexts/PDDL.h>
+
+#include <gdaplanner/loaders/PDDL.h>
 
 #include <gdaplanner/Planner.h>
 #include <gdaplanner/planners/ConvexPlanner.h>
@@ -28,21 +32,38 @@ namespace gdaplanner {
     GDAPlanner();
     ~GDAPlanner();
     
-    template<class ... Args>
+    template<class T, class ... Args>
       Context::Ptr pushContext(Args ... args) {
-      Context::Ptr ctxNew = Context::create(std::forward<Args>(args)...);
-      m_dqContexts.push_front(ctxNew);
+      Context::Ptr ctxNew = T::create(std::forward<Args>(args)...);
+      
+      this->pushContextInstance(ctxNew);
       
       return ctxNew;
+    }
+    
+    void pushContextInstance(Context::Ptr ctxPush) {
+      m_dqContexts.push_front(ctxPush);
     }
     
     void popContext();
     
     Context::Ptr currentContext();
     
-    bool readFile(std::string strFilepath);
+    template<class TLoader>
+      bool readFile(std::string strFilepath) {
+      typename TLoader::Ptr tLoader = TLoader::create();
+      Context::Ptr ctxNew = tLoader->readFile(strFilepath);
+      
+      if(ctxNew) {
+	this->pushContextInstance(ctxNew);
+	
+	return true;
+      }
+      
+      return false;
+    }
+    
     bool parseString(std::string strSource);
-    std::vector<Expression> parseSegments(std::string& strSource, unsigned int& unPos);
     
     bool processExpression(Expression exProcess);
     

@@ -5,7 +5,8 @@
 #include <memory>
 #include <iostream>
 
-#include <gdaplanner/Context.h>
+#include <gdaplanner/contexts/Context.h>
+#include <gdaplanner/contexts/StatefulContext.h>
 
 
 namespace gdaplanner {

@@ -20,6 +20,7 @@ namespace gdaplanner {
       ConvexPlanner();
       ~ConvexPlanner();
       
+      void plan(State::Ptr stGoal, StatefulContext::Ptr ctxContext);
       void plan(State::Ptr stGoal, Context::Ptr ctxContext) override;
       
       template<class ... Args>

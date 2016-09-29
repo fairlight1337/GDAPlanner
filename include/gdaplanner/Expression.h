@@ -205,6 +205,22 @@ namespace gdaplanner {
       return false;
     }
     
+    bool isVariable() {
+      if(!this->isWildcard()) {
+	if(this->type() == String) {
+	  std::string strString = this->get<std::string>();
+	  
+	  if(strString.size() > 0) {
+	    if(strString[0] == '?') {
+	      return true;
+	    }
+	  }
+	}
+      }
+      
+      return false;
+    }
+    
     bool isListOf(Type tpType) {
       if(m_tpType == List) {
 	bool bAllOfType = true;
@@ -466,6 +482,9 @@ namespace gdaplanner {
       
       return bResolved;
     }
+    
+    static std::vector<Expression> parseString(std::string strSource);
+    static std::vector<Expression> parseString(std::string& strSource, unsigned int& unPos);
     
     template<class ... Args>
       static Expression::Ptr create(Args ... args) {

@@ -11,14 +11,12 @@ int main(int argc, char** argv) {
   int nReturnvalue = EXIT_SUCCESS;
   
   GDAPlanner::Ptr gdapPlanner = GDAPlanner::create();
-  gdapPlanner->pushContext("table_setting");
-  
-  gdapPlanner->readFile("../data/TableSetting.gda");
+  gdapPlanner->readFile<loaders::PDDL>("../data/p05-domain.pddl");//TableSetting.gda");
   
   std::cout << *(gdapPlanner->currentContext()) << std::endl;
   
-  Expression exSimple = gdapPlanner->simpleExpression("(table-set \"table-1\")");
-  gdapPlanner->plan<planners::ConvexPlanner>(exSimple);
+  // Expression exSimple = gdapPlanner->simpleExpression("(table-set \"table-1\")");
+  // gdapPlanner->plan<planners::ConvexPlanner>(exSimple);
   
   return nReturnvalue;
 }
