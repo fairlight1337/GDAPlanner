@@ -1,0 +1,56 @@
+;; Declarations
+(declare (table "table-1")
+	 (side "left")
+	 (side "right")
+	 (relative-position ()))
+
+
+;; Aliases
+(alias (in-hand ?object ?side)
+       ;; Aliased as
+       (var ?side side)
+       (at-location ?object (a location ((type hand) (side ?side)))))
+
+(alias (on-table ?object ?table ?relative-position)
+       ;; Aliased as
+       (var ?table table)
+       (var relative-position ?relative-position)
+       (at-location ?object (a location ((type table) (name ?table) (position ?relative-position)))))
+
+(alias (free-hand ?side)
+       ;; Aliased as
+       (var ?side side)
+       (not (in-hand ?_ ?side)))
+
+
+;; Actions
+(action (pick ?object ?location)
+        ;; Preconditions
+        (and (at-location ?object ?location)
+             (var ?side side)
+             (free-hand ?side))
+        ;; Effects
+        (and (not (at-location ?object ?location)
+             (var ?side side)
+             (in-hand ?object ?side))))
+
+(action (place ?object ?location)
+        ;; Preconditions
+        (and (in-hand ?object))
+        ;; Effects
+        (and (not (in-hand ?object))
+             (at-location ?object ?location)))
+
+
+;; States
+(state (table-set ?table)
+       ;; Preconditions
+       (and (on-table (an object ((type plate)) ((x 0.5) (y 0.1))) ?table)
+            (on-table (an object ((type cup)) ((x 0.6) (y 0.15))) ?table)
+            (on-table (an object ((type plate)) ((x 1.2) (y 0.1))) ?table)
+            (on-table (an object ((type cup)) ((x 0.3) (y 0.15)))) ?table))
+
+
+;; Facts
+(fact (on-table (an object ((type plate))) "table-1"))
+(fact (on-table (an object ((color red) (type cup))) "table-1"))
