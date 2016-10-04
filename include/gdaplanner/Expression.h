@@ -238,7 +238,7 @@ namespace gdaplanner {
 	\param unStart Index of the first element to include in the sub-set
 	\param unLength Desired length of the sub-et
 	
-	\return std::vector of Expression instances from the original list */
+	\return Expression of type Expression::List holding the subset of Expression instances from the original list */
     std::vector<Expression> subSequence(unsigned int unStart, unsigned int unLength = 0) {
       std::vector<Expression> vecSequence;
       
