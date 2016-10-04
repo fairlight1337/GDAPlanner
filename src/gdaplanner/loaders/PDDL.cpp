@@ -19,7 +19,6 @@ namespace gdaplanner {
 	  if(exProcess[0] == "define") {
 	    for(unsigned int unI = 1; unI < exProcess.size(); ++unI) {
 	      Expression exDetail = exProcess[unI];
-	      
 	      if(exDetail.type() == Expression::List && exDetail.size() > 0) {
 		std::string strSection = exDetail[0].get<std::string>();
 		

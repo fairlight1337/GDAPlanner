@@ -29,8 +29,9 @@ make test
 Included Examples
 ---
 
- * `data/openstacks-domain.pddl`: OpenStacks example domain file written in PDDL
- * `data/openstacks-problem.pddl`: OpenStacks example problem file written in PDDL (fits the accompanying example domain)
+ * `data/tablesetting-domain.pddl`: Table setting example domain file written in PDDL
+ * `data/tablesetting-problem.pddl`: Table setting example problem file written in PDDL (fits the accompanying example domain)
+ * `data/test/*`: Numerous PDDL domain and problem definitions for testing the PDDL parser
 
 
 Regenerating the Doxygen Documentation
