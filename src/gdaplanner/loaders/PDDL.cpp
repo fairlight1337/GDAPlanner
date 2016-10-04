@@ -16,7 +16,7 @@ namespace gdaplanner {
 	contexts::PDDL::Ptr pcxCtx = std::dynamic_pointer_cast<contexts::PDDL>(ctxContext);
 	
 	if(pcxCtx) {
-	  if(exProcess[0].get<std::string>() == "define") {
+	  if(exProcess[0] == "define") {
 	    for(unsigned int unI = 1; unI < exProcess.size(); ++unI) {
 	      Expression exDetail = exProcess[unI];
 	      

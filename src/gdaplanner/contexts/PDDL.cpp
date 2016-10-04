@@ -70,41 +70,57 @@ namespace gdaplanner {
     
     bool PDDL::addPredicate(Expression exPredicate) {
       if(exPredicate.type() == Expression::List) {
-	if(exPredicate.size() > 0) {
-	  std::string strPredicate = exPredicate[0].get<std::string>();
+	Expression exArguments = exPredicate.subSequence(1);
+	
+	std::vector<std::pair<Expression, Expression>> vecTypedVariables;
+	
+	while(exArguments.size() > 0) {
+	  std::vector<Expression> vecVariables;
 	  
-	  Expression exTypedVariable(Expression::parseString("(?name - ?type)"));
-	  
-	  while(exPredicate.size() > 0) {
-	    bool bResolved;
-	    
-	    if(exPredicate.size() >= 3) {
-	      Expression exSub = Expression(exPredicate.subSequence(0, 3));
-	      std::map<std::string, Expression> mapResolution = exTypedVariable.resolve(exSub, bResolved);
-	      
-	      if(bResolved) {
-		// ...
-		exPredicate = Expression(exPredicate.subSequence(3));
-	      }
-	    }
-	    
-	    if(!bResolved) {
-	      Expression exSub = exPredicate[0];
-	      
-	      if(exSub.isVariable()) {
-		// ...
-		bResolved = true;
-	      }
-	    }
-	    
-	    if(!bResolved) {
-	      std::cerr << "Couldn't resolve '" << exPredicate << "' into a predicate." << std::endl;
-	      return false;
-	    }
+	  while(exArguments.size() > 0 && exArguments[0].isVariable()) {
+	    vecVariables.push_back(exArguments[0]);
+	    exArguments = exArguments.subSequence(1);
 	  }
 	  
-	  return true;
+	  if(exArguments.size() > 0) {
+	    if(exArguments[0] == "-") {
+	      exArguments = exArguments.subSequence(1);
+	      
+	      if(exArguments.size() > 0) {
+		for(Expression exVariables : vecVariables) {
+		  vecTypedVariables.push_back({exVariables, exArguments[0]});
+		}
+		
+		exArguments = exArguments.subSequence(1);
+		vecVariables.clear();
+	      } else {
+		std::cerr << "Missing type specifier: " << exPredicate << std::endl;
+		break;
+	      }
+	    } else {
+	      Expression exPartial =  exArguments[0];
+	      std::cerr << "Unexpected identifier: " << exPartial << " (context: " << exPredicate << ")" << std::endl;
+	      break;
+	    }
+	  } else {
+	    // No typing
+	    vecVariables.clear();
+	  }
 	}
+	
+	Expression exAdd = exPredicate[0];
+	for(std::pair<Expression, Expression> prPair : vecTypedVariables) {
+	  exAdd.add(prPair.first);
+	}
+	
+	Predicate pdAdd(exAdd);
+	for(std::pair<Expression, Expression> prPair : vecTypedVariables) {
+	  pdAdd.setType(prPair.first.get<std::string>(), prPair.second.get<std::string>());
+	}
+	
+	m_vecPredicates.push_back(pdAdd);
+	
+	return true;
       }
       
       return false;

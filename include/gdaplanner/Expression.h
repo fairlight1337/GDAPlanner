@@ -190,7 +190,7 @@ namespace gdaplanner {
     }
     
     bool isWildcard() {
-      return (m_tpType == String && this->get<std::string>() == "?_");
+      return (m_tpType == String && *this == "?_");
     }
     
     bool hasWildcard() {
@@ -481,6 +481,28 @@ namespace gdaplanner {
       std::map<std::string, Expression> mapResult = this->resolve(exOther, bResolved);
       
       return bResolved;
+    }
+    
+    bool operator==(const char* arrcValue) {
+      typename Value<std::string>::Ptr vlValue = std::dynamic_pointer_cast<Value<std::string>>(m_vbValue);
+      
+      return (vlValue && vlValue->get() == std::string(arrcValue));
+    }
+    
+    template<typename T>
+      bool operator==(T& tValue) {
+      typename Value<T>::Ptr vlValue = std::dynamic_pointer_cast<Value<T>>(m_vbValue);
+      
+      return (vlValue && vlValue->get() == tValue);
+    }
+    
+    void add(Expression exAdd) {
+      if(m_tpType != List) {
+	m_vecSubExpressions.push_back(*this);
+	m_tpType = List;
+      }
+      
+      m_vecSubExpressions.push_back(exAdd);
     }
     
     static std::vector<Expression> parseString(std::string strSource);

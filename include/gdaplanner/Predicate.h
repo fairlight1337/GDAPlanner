@@ -28,6 +28,7 @@ namespace gdaplanner {
     
     Expression& expression();
     std::string& type(std::string strVariable);
+    void setType(std::string strVariable, std::string strType);
     bool isTyped(std::string strVariable);
     std::vector<std::string> variables();
     
