@@ -9,10 +9,10 @@ namespace gdaplanner {
   }
   
   bool World::assertFact(Expression exFact) {
-    if(this->holds(exFact).size() == 0) {
+    if(this->holds(exFact, true).size() == 0) {
       Expression exFactNot = exFact.negate();
       
-      if(this->holds(exFactNot).size() > 0) {
+      if(this->holds(exFactNot, true).size() > 0) {
 	this->retractFact(exFactNot);
       }
       
