@@ -15,21 +15,16 @@ int main(int argc, char** argv) {
   contexts::Context::Ptr ctxContext = gdapPlanner->currentContext();
   
   if(ctxContext) {
-    std::cout << *ctxContext << std::endl;
-    
     problems::Problem::Ptr prbProblem = gdapPlanner->readProblemFile<loaders::PDDL>("../data/openstacks-problem.pddl");
     
     if(prbProblem) {
-      std::cout << *prbProblem << std::endl;
+      gdapPlanner->plan<planners::ConvexPlanner>(prbProblem);
     } else {
       std::cerr << "Failed to parse PDDL problem" << std::endl;
     }
   } else {
     std::cerr << "Failed to parse PDDL context" << std::endl;
   }
-  
-  // Expression exSimple = gdapPlanner->simpleExpression("(table-set \"table-1\")");
-  // gdapPlanner->plan<planners::ConvexPlanner>(exSimple);
   
   return nReturnvalue;
 }

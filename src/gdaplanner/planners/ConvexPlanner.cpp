@@ -9,14 +9,15 @@ namespace gdaplanner {
     ConvexPlanner::~ConvexPlanner() {
     }
     
-    void ConvexPlanner::plan(State::Ptr stGoal, contexts::StatefulContext::Ptr ctxContext) {
-      World::Ptr wdWorld = ctxContext->currentWorld();
+    void ConvexPlanner::plan(problems::PDDL::Ptr prbProblem, contexts::PDDL::Ptr ctxContext) {
+      std::cout << "This PDDL planner isn't implemented yet. Supplied information:" << std::endl;
       
-      std::cout << "This planner isn't implemented yet." << std::endl;
+      std::cout << *ctxContext << std::endl;
+      std::cout << *prbProblem << std::endl;
     }
     
-    void ConvexPlanner::plan(State::Ptr stGoal, contexts::Context::Ptr ctxContext) {
-      this->plan(stGoal, std::dynamic_pointer_cast<contexts::StatefulContext>(ctxContext));
+    void ConvexPlanner::plan(problems::Problem::Ptr prbProblem, contexts::Context::Ptr ctxContext) {
+      this->plan(std::dynamic_pointer_cast<problems::PDDL>(prbProblem), std::dynamic_pointer_cast<contexts::PDDL>(ctxContext));
     }
   }
 }

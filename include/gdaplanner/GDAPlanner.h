@@ -75,21 +75,22 @@ namespace gdaplanner {
     Expression simpleExpression(std::string strSource);
     
     template<class T>
-      bool plan(Expression exTargetState) {
-      std::vector<State::Ptr> vecMatchingStates = this->currentContext()->matchingStates(exTargetState);
+      bool plan(problems::Problem::Ptr prbProblem) {
+      //std::vector<State::Ptr> vecMatchingStates = this->currentContext()->matchingStates(exTargetState);
       
-      if(vecMatchingStates.size() > 0) {
+      /*if(vecMatchingStates.size() > 0) {
 	for(State::Ptr stGoalState : vecMatchingStates) {
 	  State::Ptr stParametrizedGoal = stGoalState->parametrize(exTargetState);
 	  
-	  Planner::Ptr prPlanner = T::create();
-	  prPlanner->plan(stParametrizedGoal, this->currentContext());
 	}
 	
 	return true;
-      }
+	}*/
       
-      return false;
+      Planner::Ptr prPlanner = T::create();
+      prPlanner->plan(prbProblem, this->currentContext());
+      
+      return true;
     }
     
     template<class ... Args>

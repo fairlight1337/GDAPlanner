@@ -7,6 +7,7 @@
 
 #include <gdaplanner/contexts/Context.h>
 #include <gdaplanner/contexts/StatefulContext.h>
+#include <gdaplanner/problems/Problem.h>
 
 
 namespace gdaplanner {
@@ -20,7 +21,7 @@ namespace gdaplanner {
     Planner();
     ~Planner();
     
-    virtual void plan(State::Ptr stGoal, contexts::Context::Ptr ctxContext) = 0;
+    virtual void plan(problems::Problem::Ptr prbProblem, contexts::Context::Ptr ctxContext) = 0;
     
     template<class ... Args>
       static Planner::Ptr create(Args ... args) {

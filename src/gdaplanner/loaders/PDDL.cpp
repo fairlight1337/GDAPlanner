@@ -68,7 +68,7 @@ namespace gdaplanner {
 	  }
 	}
       }
-      std::cout << "Return from ctx" << std::endl;
+      
       return bResult;
     }
     
@@ -142,8 +142,6 @@ namespace gdaplanner {
 	  }
 	}
       }
-      
-      std::cout << "Return from prb" << std::endl;
       
       return bResult;
     }

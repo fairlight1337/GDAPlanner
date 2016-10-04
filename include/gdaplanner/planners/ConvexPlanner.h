@@ -6,6 +6,8 @@
 #include <iostream>
 
 #include <gdaplanner/Planner.h>
+#include <gdaplanner/contexts/PDDL.h>
+#include <gdaplanner/problems/PDDL.h>
 
 
 namespace gdaplanner {
@@ -20,8 +22,8 @@ namespace gdaplanner {
       ConvexPlanner();
       ~ConvexPlanner();
       
-      void plan(State::Ptr stGoal, contexts::StatefulContext::Ptr ctxContext);
-      void plan(State::Ptr stGoal, contexts::Context::Ptr ctxContext) override;
+      void plan(problems::PDDL::Ptr prbProblem, contexts::PDDL::Ptr ctxContext);
+      void plan(problems::Problem::Ptr prbProblem, contexts::Context::Ptr ctxContext) override;
       
       template<class ... Args>
 	static ConvexPlanner::Ptr create(Args ... args) {
