@@ -1,19 +1,28 @@
 Goal Directed Action Planner
 ===
 
-Compile:
+To compile the software package, run this:
 ```bash
 mkdir build
 cd build
 cmake ..
 make
-make test
 ```
 
 Run (must be run from within `bin` at the moment):
 ```bash
 cd bin
 ./GDAPlanner-bin
+```
+
+
+Testing the code
+---
+
+To see whether a current implementation suffices all automated tests,
+after compiling, run this from the `build/` directory:
+```bash
+make test
 ```
 
 
