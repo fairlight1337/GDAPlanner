@@ -8,6 +8,7 @@
 #include <fstream>
 
 #include <gdaplanner/contexts/Context.h>
+#include <gdaplanner/problems/Problem.h>
 
 
 namespace gdaplanner {
@@ -22,10 +23,13 @@ namespace gdaplanner {
       Loader();
       ~Loader();
       
-      Context::Ptr readFile(std::string strFilepath);
+      contexts::Context::Ptr readContextFile(std::string strFilepath);
+      virtual contexts::Context::Ptr makeContext() = 0;
+      virtual bool processExpression(Expression exProcess, contexts::Context::Ptr ctxContext) = 0;
       
-      virtual bool processExpression(Expression exProcess, Context::Ptr ctxContext) = 0;
-      virtual Context::Ptr makeContext() = 0;
+      problems::Problem::Ptr readProblemFile(std::string strFilepath);
+      virtual problems::Problem::Ptr makeProblem() = 0;
+      virtual bool processExpression(Expression exProcess, problems::Problem::Ptr prbContext) = 0;
       
       template<class ... Args>
 	static Loader::Ptr create(Args ... args) {

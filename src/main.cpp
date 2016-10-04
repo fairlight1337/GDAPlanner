@@ -11,12 +11,19 @@ int main(int argc, char** argv) {
   int nReturnvalue = EXIT_SUCCESS;
   
   GDAPlanner::Ptr gdapPlanner = GDAPlanner::create();
-  gdapPlanner->readFile<loaders::PDDL>("../data/openstacks-example.pddl");//TableSetting.gda");
-  
-  Context::Ptr ctxContext = gdapPlanner->currentContext();
+  gdapPlanner->readContextFile<loaders::PDDL>("../data/openstacks-domain.pddl");
+  contexts::Context::Ptr ctxContext = gdapPlanner->currentContext();
   
   if(ctxContext) {
     std::cout << *ctxContext << std::endl;
+    
+    problems::Problem::Ptr prbProblem = gdapPlanner->readProblemFile<loaders::PDDL>("../data/openstacks-problem.pddl");
+    
+    if(prbProblem) {
+      std::cout << *prbProblem << std::endl;
+    } else {
+      std::cerr << "Failed to parse PDDL problem" << std::endl;
+    }
   } else {
     std::cerr << "Failed to parse PDDL context" << std::endl;
   }

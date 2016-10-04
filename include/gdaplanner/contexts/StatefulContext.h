@@ -13,31 +13,33 @@
 
 
 namespace gdaplanner {
-  class StatefulContext : public Context {
-  public:
-    typedef std::shared_ptr<StatefulContext> Ptr;
+  namespace contexts {
+    class StatefulContext : public contexts::Context {
+    public:
+      typedef std::shared_ptr<StatefulContext> Ptr;
     
-  private:
-    std::deque<World::Ptr> m_dqWorlds;
+    private:
+      std::deque<World::Ptr> m_dqWorlds;
     
-  protected:
-  public:
-    StatefulContext(std::string strIdentifier = "");
-    ~StatefulContext();
+    protected:
+    public:
+      StatefulContext(std::string strIdentifier = "");
+      ~StatefulContext();
     
-    World::Ptr pushWorld();
-    bool popWorld();
-    World::Ptr currentWorld();
+      World::Ptr pushWorld();
+      bool popWorld();
+      World::Ptr currentWorld();
     
-    void fact(Expression exFact);
+      void fact(Expression exFact);
     
-    virtual std::string toString() override;
+      virtual std::string toString() override;
     
-    template<class ... Args>
-      static StatefulContext::Ptr create(Args ... args) {
-      return std::make_shared<StatefulContext>(std::forward<Args>(args)...);
-    }
-  };
+      template<class ... Args>
+	static StatefulContext::Ptr create(Args ... args) {
+	return std::make_shared<StatefulContext>(std::forward<Args>(args)...);
+      }
+    };
+  }
 }
 
 

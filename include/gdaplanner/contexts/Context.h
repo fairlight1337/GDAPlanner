@@ -17,38 +17,40 @@
 
 
 namespace gdaplanner {
-  class Context : public Printable {
-  public:
-    typedef std::shared_ptr<Context> Ptr;
+  namespace contexts {
+    class Context : public Printable {
+    public:
+      typedef std::shared_ptr<Context> Ptr;
     
-  private:
-    std::string m_strIdentifier;
+    private:
+      std::string m_strIdentifier;
     
-    std::vector<Declaration::Ptr> m_vecDeclarations;
-    std::vector<Alias::Ptr> m_vecAliases;
-    std::vector<State::Ptr> m_vecStates;
+      std::vector<Declaration::Ptr> m_vecDeclarations;
+      std::vector<Alias::Ptr> m_vecAliases;
+      std::vector<State::Ptr> m_vecStates;
     
-  protected:
-    std::vector<Action::Ptr> m_vecActions;
+    protected:
+      std::vector<Action::Ptr> m_vecActions;
     
-  public:
-    Context(std::string strIdentifier = "");
-    ~Context();
+    public:
+      Context(std::string strIdentifier = "");
+      ~Context();
     
-    void declare(std::string strIdentifier, Expression expDeclare);
-    void alias(Expression exAlias, std::vector<Expression> vecAliased);
-    void action(Expression exPreconditions, Expression exEffects);
-    void state(Expression exState, Expression exPreconditions);
+      void declare(std::string strIdentifier, Expression expDeclare);
+      void alias(Expression exAlias, std::vector<Expression> vecAliased);
+      void action(Expression exPreconditions, Expression exEffects);
+      void state(Expression exState, Expression exPreconditions);
     
-    std::vector<State::Ptr> matchingStates(Expression exMatch);    
+      std::vector<State::Ptr> matchingStates(Expression exMatch);    
     
-    virtual std::string toString() override;
+      virtual std::string toString() override;
     
-    template<class ... Args>
-      static Context::Ptr create(Args ... args) {
-      return std::make_shared<Context>(std::forward<Args>(args)...);
-    }
-  };
+      template<class ... Args>
+	static Context::Ptr create(Args ... args) {
+	return std::make_shared<Context>(std::forward<Args>(args)...);
+      }
+    };
+  }
 }
 
 

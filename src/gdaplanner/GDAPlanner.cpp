@@ -16,7 +16,7 @@ namespace gdaplanner {
     }
   }
   
-  Context::Ptr GDAPlanner::currentContext() {
+  contexts::Context::Ptr GDAPlanner::currentContext() {
     if(m_dqContexts.size() > 0) {
       return m_dqContexts.front();
     }

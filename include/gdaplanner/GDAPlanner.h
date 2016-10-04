@@ -25,7 +25,7 @@ namespace gdaplanner {
     typedef std::shared_ptr<GDAPlanner> Ptr;
     
   private:
-    std::deque<Context::Ptr> m_dqContexts;
+    std::deque<contexts::Context::Ptr> m_dqContexts;
     
   protected:
   public:
@@ -33,26 +33,26 @@ namespace gdaplanner {
     ~GDAPlanner();
     
     template<class T, class ... Args>
-      Context::Ptr pushContext(Args ... args) {
-      Context::Ptr ctxNew = T::create(std::forward<Args>(args)...);
+      contexts::Context::Ptr pushContext(Args ... args) {
+      contexts::Context::Ptr ctxNew = T::create(std::forward<Args>(args)...);
       
       this->pushContextInstance(ctxNew);
       
       return ctxNew;
     }
     
-    void pushContextInstance(Context::Ptr ctxPush) {
+    void pushContextInstance(contexts::Context::Ptr ctxPush) {
       m_dqContexts.push_front(ctxPush);
     }
     
     void popContext();
     
-    Context::Ptr currentContext();
+    contexts::Context::Ptr currentContext();
     
     template<class TLoader>
-      bool readFile(std::string strFilepath) {
+      bool readContextFile(std::string strFilepath) {
       typename TLoader::Ptr tLoader = TLoader::create();
-      Context::Ptr ctxNew = tLoader->readFile(strFilepath);
+      contexts::Context::Ptr ctxNew = tLoader->readContextFile(strFilepath);
       
       if(ctxNew) {
 	this->pushContextInstance(ctxNew);
@@ -61,6 +61,11 @@ namespace gdaplanner {
       }
       
       return false;
+    }
+    
+    template<class TLoader>
+      problems::Problem::Ptr readProblemFile(std::string strFilepath) {
+      return TLoader::create()->readProblemFile(strFilepath);
     }
     
     bool parseString(std::string strSource);

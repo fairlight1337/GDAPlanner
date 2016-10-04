@@ -9,7 +9,7 @@ namespace gdaplanner {
     PDDL::~PDDL() {
     }
     
-    bool PDDL::processExpression(Expression exProcess, Context::Ptr ctxContext) {
+    bool PDDL::processExpression(Expression exProcess, contexts::Context::Ptr ctxContext) {
       bool bResult = false;
       
       if(exProcess.type() == Expression::List && exProcess.size() > 0) {
@@ -72,8 +72,18 @@ namespace gdaplanner {
       return bResult;
     }
     
-    Context::Ptr PDDL::makeContext() {
+    contexts::Context::Ptr PDDL::makeContext() {
       return contexts::PDDL::create();
+    }
+    
+    bool PDDL::processExpression(Expression exProcess, problems::Problem::Ptr prbContext) {
+      // ...
+      
+      return true;
+    }
+    
+    problems::Problem::Ptr PDDL::makeProblem() {
+      return problems::PDDL::create();
     }
   }
 }

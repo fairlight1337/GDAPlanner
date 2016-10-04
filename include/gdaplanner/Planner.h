@@ -20,7 +20,7 @@ namespace gdaplanner {
     Planner();
     ~Planner();
     
-    virtual void plan(State::Ptr stGoal, Context::Ptr ctxContext) = 0;
+    virtual void plan(State::Ptr stGoal, contexts::Context::Ptr ctxContext) = 0;
     
     template<class ... Args>
       static Planner::Ptr create(Args ... args) {

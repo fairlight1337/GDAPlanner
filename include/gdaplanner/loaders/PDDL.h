@@ -7,6 +7,7 @@
 
 #include <gdaplanner/loaders/Loader.h>
 #include <gdaplanner/contexts/PDDL.h>
+#include <gdaplanner/problems/PDDL.h>
 
 
 namespace gdaplanner {
@@ -21,8 +22,11 @@ namespace gdaplanner {
       PDDL();
       ~PDDL();
       
-      virtual bool processExpression(Expression exProcess, Context::Ptr ctxContext) override;
-      virtual Context::Ptr makeContext() override;
+      virtual bool processExpression(Expression exProcess, contexts::Context::Ptr ctxContext) override;
+      virtual contexts::Context::Ptr makeContext() override;
+      
+      virtual bool processExpression(Expression exProcess, problems::Problem::Ptr ctxProblem) override;
+      virtual problems::Problem::Ptr makeProblem() override;
       
       template<class ... Args>
 	static PDDL::Ptr create(Args ... args) {
