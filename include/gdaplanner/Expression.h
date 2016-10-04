@@ -472,95 +472,109 @@ namespace gdaplanner {
       return false;
     }
     
-    static std::map<std::string, Expression> resolveLists(Expression& exListA, Expression& exListB, bool& bResolved) {
+    static std::map<std::string, Expression> resolveLists(Expression& exListA, Expression& exListB, bool& bResolved, bool bExact = false) {
       std::map<std::string, Expression> mapResolution;
       bResolved = false;
       
       if(exListA.type() == List && exListB.type() == List) {
-	bool bWCA = exListA.hasWildcard();
-	bool bWCB = exListB.hasWildcard();
-	bResolved = true;
-	
-	std::vector<Expression> vecA = exListA.subExpressions();
-	std::vector<Expression> vecB = exListB.subExpressions();
-	
-	std::vector<Expression>::iterator itA = vecA.begin();
-	std::vector<Expression>::iterator itB = vecB.begin();
-	
-	if(bWCA) {
-	  bResolved = true;
-	  
-	  // B should have any items A has, in any order, or more
-	  for(; itA != vecA.end(); ++itA) {
-	    if(!itA->isWildcard()) {
-	      bResolved = false;
-	      
-	      for(; itB != vecB.end(); ++itB) {
-		if(!itB->isWildcard()) {
-		  bResolved = Expression::resolveExpressionsIntoResolution(mapResolution, *itA, *itB);
-		  
-		  if(bResolved) {
-		    // Remove item from B as it was `used up` to
-		    // validate an item in A.
-		    vecB.erase(itB);
-		    break;
-		  }
-		}
-	      }
+	if(bExact) {
+	  if(exListA.size() == exListB.size()) {
+	    bResolved = true;
+	    
+	    for(unsigned int unI = 0; unI < exListA.size(); ++unI) {
+	      bResolved = Expression::resolveExpressionsIntoResolution(mapResolution, exListA[unI], exListB[unI]);
 	      
 	      if(!bResolved) {
-		if(bWCB) {
-		  bResolved = true;
-		} else {
-		  break;
-		}
+		break;
 	      }
 	    }
 	  }
 	} else {
+	  bool bWCA = exListA.hasWildcard();
+	  bool bWCB = exListB.hasWildcard();
 	  bResolved = true;
+	
+	  std::vector<Expression> vecA = exListA.subExpressions();
+	  std::vector<Expression> vecB = exListB.subExpressions();
+	
+	  std::vector<Expression>::iterator itA = vecA.begin();
+	  std::vector<Expression>::iterator itB = vecB.begin();
+	
+	  if(bWCA) {
+	    bResolved = true;
 	  
-	  // B should have all items A has, and not more (except for
-	  // wildcards), in the exact same order
-	  unsigned int unResolved = 0;
-	  
-	  for(; (itA != vecA.end()) && (itB != vecB.end()); ++itA, ++itB) {
-	    while(itA != vecA.end() && itA->isWildcard()) {
-	      ++itA;
-	    }
-	    
-	    if(itA != vecA.end()) {
-	      unResolved++;
+	    // B should have any items A has, in any order, or more
+	    for(; itA != vecA.end(); ++itA) {
+	      if(!itA->isWildcard()) {
+		bResolved = false;
 	      
-	      while(itB != vecB.end() && itB->isWildcard()) {
-		++itB;
-	      }
+		for(; itB != vecB.end(); ++itB) {
+		  if(!itB->isWildcard()) {
+		    bResolved = Expression::resolveExpressionsIntoResolution(mapResolution, *itA, *itB);
+		  
+		    if(bResolved) {
+		      // Remove item from B as it was `used up` to
+		      // validate an item in A.
+		      vecB.erase(itB);
+		      break;
+		    }
+		  }
+		}
 	      
-	      if(itB != vecB.end()) {
-		if(Expression::resolveExpressionsIntoResolution(mapResolution, *itA, *itB)) {
-		  unResolved--;
+		if(!bResolved) {
+		  if(bWCB) {
+		    bResolved = true;
+		  } else {
+		    break;
+		  }
 		}
 	      }
 	    }
+	  } else {
+	    bResolved = true;
+	  
+	    // B should have all items A has, and not more (except for
+	    // wildcards), in the exact same order
+	    unsigned int unResolved = 0;
+	  
+	    for(; (itA != vecA.end()) && (itB != vecB.end()); ++itA, ++itB) {
+	      while(itA != vecA.end() && itA->isWildcard()) {
+		++itA;
+	      }
 	    
-	    if(itA == vecA.end()) {
-	      --itA;
-	    }
+	      if(itA != vecA.end()) {
+		unResolved++;
+	      
+		while(itB != vecB.end() && itB->isWildcard()) {
+		  ++itB;
+		}
+	      
+		if(itB != vecB.end()) {
+		  if(Expression::resolveExpressionsIntoResolution(mapResolution, *itA, *itB)) {
+		    unResolved--;
+		  }
+		}
+	      }
 	    
-	    if(itB == vecB.end()) {
-	      --itB;
+	      if(itA == vecA.end()) {
+		--itA;
+	      }
+	    
+	      if(itB == vecB.end()) {
+		--itB;
+	      }
 	    }
-	  }
 	  
-	  while(itA != vecA.end() && itA->isWildcard()) {
-	    itA++;
-	  }
+	    while(itA != vecA.end() && itA->isWildcard()) {
+	      itA++;
+	    }
 	  
-	  while(itB != vecB.end() && itB->isWildcard()) {
-	    itB++;
-	  }
+	    while(itB != vecB.end() && itB->isWildcard()) {
+	      itB++;
+	    }
 	  
-	  bResolved = ((itA == vecA.end() || bWCB) && (itB == vecB.end() || bWCA) && ((unResolved == 0) || (bWCB && unResolved > 0)));
+	    bResolved = ((itA == vecA.end() || bWCB) && (itB == vecB.end() || bWCA) && ((unResolved == 0) || (bWCB && unResolved > 0)));
+	  }
 	}
       }
       
@@ -605,7 +619,7 @@ namespace gdaplanner {
 	\param bResolved Boolean flag denoting whether the resolution was successful
 	
 	\return Map of variable to value bindings */
-    std::map<std::string, Expression> resolve(Expression& exOther, bool& bResolved) {
+    std::map<std::string, Expression> resolve(Expression& exOther, bool& bResolved, bool bExact = false) {
       std::map<std::string, Expression> mapResolution;
       bResolved = false;
       
@@ -617,35 +631,42 @@ namespace gdaplanner {
 	  std::string strA = this->get<std::string>();
 	  std::string strB = exOther.get<std::string>();
 	  
-	  if(strA.size() > 0 && strB.size() > 0) {
-	    if(strA[0] == '?') {
-	      if(strB[0] == '?') {
-		bResolved = true;
-		
-		if(strA != "?_") {
-		  mapResolution[strA] = exOther;
-		}
-		
-		if(strA != strB && strB != "?_") {
-		  mapResolution[strB] = *this;
-		}
-	      } else {
-		bResolved = true;
-		
-		if(strA != "?_") {
-		  mapResolution[strA] = exOther;
-		}
-	      }
-	    } else {
-	      if(strB[0] == '?') {
-		bResolved = true;
-		
-		if(strB != "?_") {
-		  mapResolution[strB] = *this;
-		}
-	      } else {
-		if(strA == strB) {
+	  if(bExact) {
+	    if((this->isVariable() && exOther.isVariable()) ||
+	       strA == strB) {
+	      bResolved = true;
+	    }
+	  } else {
+	    if(strA.size() > 0 && strB.size() > 0) {
+	      if(strA[0] == '?') {
+		if(strB[0] == '?') {
 		  bResolved = true;
+		
+		  if(strA != "?_") {
+		    mapResolution[strA] = exOther;
+		  }
+		
+		  if(strA != strB && strB != "?_") {
+		    mapResolution[strB] = *this;
+		  }
+		} else {
+		  bResolved = true;
+		
+		  if(strA != "?_") {
+		    mapResolution[strA] = exOther;
+		  }
+		}
+	      } else {
+		if(strB[0] == '?') {
+		  bResolved = true;
+		
+		  if(strB != "?_") {
+		    mapResolution[strB] = *this;
+		  }
+		} else {
+		  if(strA == strB) {
+		    bResolved = true;
+		  }
 		}
 	      }
 	    }
@@ -669,10 +690,10 @@ namespace gdaplanner {
 	} break;
 	  
 	case List: {
-	  mapResolution = Expression::resolveLists(*this, exOther, bResolved);
+	  mapResolution = Expression::resolveLists(*this, exOther, bResolved, bExact);
 	  
 	  if(bResolved) {
-	    std::map<std::string, Expression> mapResolution2 = Expression::resolveLists(exOther, *this, bResolved);
+	    std::map<std::string, Expression> mapResolution2 = Expression::resolveLists(exOther, *this, bResolved, bExact);
 	    
 	    if(bResolved) {
 	      for(std::map<std::string, Expression>::iterator itR = mapResolution2.begin(); itR != mapResolution2.end(); ++itR) {
@@ -686,8 +707,8 @@ namespace gdaplanner {
 		}
 	      }
 	    }
-	  }
-	} break;
+	  } break;
+	}
 	}
       } else if(m_tpType == String) {
 	std::string strUs = this->get<std::string>();
