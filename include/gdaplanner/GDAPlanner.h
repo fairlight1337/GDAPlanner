@@ -16,7 +16,7 @@
 #include <gdaplanner/loaders/PDDL.h>
 
 #include <gdaplanner/Planner.h>
-#include <gdaplanner/planners/ConvexPlanner.h>
+#include <gdaplanner/planners/ForwardPlanner.h>
 
 
 namespace gdaplanner {

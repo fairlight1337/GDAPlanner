@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     problems::Problem::Ptr prbProblem = gdapPlanner->readProblemFile<loaders::PDDL>("../data/openstacks-problem.pddl");
     
     if(prbProblem) {
-      gdapPlanner->plan<planners::ConvexPlanner>(prbProblem);
+      gdapPlanner->plan<planners::ForwardPlanner>(prbProblem);
     } else {
       std::cerr << "Failed to parse PDDL problem" << std::endl;
     }

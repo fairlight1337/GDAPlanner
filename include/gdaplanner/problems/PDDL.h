@@ -13,6 +13,7 @@
 
 namespace gdaplanner {
   namespace problems {
+    /** \brief PDDL planning problem definition */
     class PDDL : public Problem {
     public:
       typedef std::shared_ptr<PDDL> Ptr;
@@ -35,23 +36,38 @@ namespace gdaplanner {
       PDDL();
       ~PDDL();
       
+      /** \brief Set problem identifier */
       void setIdentifier(std::string strIdentifier);
+      /** \brief Set domain name */
       void setDomain(std::string strDomain);
+      /** \brief Add an object */
       void addObject(std::string strName, std::string strType);
+      /** \brief Add an initialization expression */
       void addInitExpression(Expression exInit);
+      /** \brief Set the list of initialization expressions */
       void setInitExpressions(std::vector<Expression> vecInitExpressions);
+      /** \brief Set this problem's goal */
       void setGoal(Expression exGoal);
+      /** \brief Set this problem's metric */
       void setMetric(Expression exMetric);
       
+      /** \brief Return problem identifier */
       std::string identifier();
+      /** \brief Return problem domain */
       std::string domain();
+      /** \brief Return list of objects */
       std::vector<Object> objects();
+      /** \brief Return list of initialization expressions */
       std::vector<Expression> initExpressions();
+      /** \brief Return this problem's goal */
       Expression goal();
+      /** \brief Return this problem's metric */
       Expression metric();
       
+      /** \brief Format stream output */
       virtual std::string toString() override;
       
+      /** \brief Create a new instance of this class */
       template<class ... Args>
 	static PDDL::Ptr create(Args ... args) {
 	return std::make_shared<PDDL>(std::forward<Args>(args)...);
