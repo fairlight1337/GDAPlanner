@@ -754,6 +754,20 @@ namespace gdaplanner {
       throw std::exception();
     }
     
+    Expression negate() {
+      if(m_tpType == List) {
+	if(this->size() == 2 && m_vecSubExpressions[0] == "not") {
+	  return m_vecSubExpressions[1];
+	}
+      }
+      
+      Expression exNot;
+      exNot.add(Expression::parseString("not")[0]);
+      exNot.add(*this);
+      
+      return exNot;
+    }
+    
     void pushFront(Expression exPush) {
       if(m_tpType != List) {
 	m_vecSubExpressions.push_back(*this);
