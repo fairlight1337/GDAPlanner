@@ -40,3 +40,4 @@ macro(AddTests)
 endmacro(AddTests)
 
 AddTests(expression_equality)
+AddTests(parse_pddl)
