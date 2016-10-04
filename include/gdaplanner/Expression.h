@@ -169,7 +169,7 @@ namespace gdaplanner {
 	\return Value contained in the Expression instance, or T's default constructor */
     template<typename T>
       T get() {
-      if(m_tpType == List) {
+      if(m_tpType != List) {
 	typename Value<T>::Ptr vlValue = std::dynamic_pointer_cast<Value<T>>(m_vbValue);
 	
 	if(vlValue) {
