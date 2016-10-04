@@ -459,9 +459,9 @@ namespace gdaplanner {
       return bSuccess;
     }
     
-    static bool resolveExpressionsIntoResolution(std::map<std::string, Expression>& mapResolution, Expression exA, Expression exB) {
+    static bool resolveExpressionsIntoResolution(std::map<std::string, Expression>& mapResolution, Expression exA, Expression exB, bool bExact = false) {
       bool bResolvedSub;
-      std::map<std::string, Expression> mapResolutionSub = exA.resolve(exB, bResolvedSub);
+      std::map<std::string, Expression> mapResolutionSub = exA.resolve(exB, bResolvedSub, bExact);
       
       if(bResolvedSub) {
 	if(Expression::appendToResolution(mapResolution, mapResolutionSub)) {
@@ -482,7 +482,7 @@ namespace gdaplanner {
 	    bResolved = true;
 	    
 	    for(unsigned int unI = 0; unI < exListA.size(); ++unI) {
-	      bResolved = Expression::resolveExpressionsIntoResolution(mapResolution, exListA[unI], exListB[unI]);
+	      bResolved = Expression::resolveExpressionsIntoResolution(mapResolution, exListA[unI], exListB[unI], bExact);
 	      
 	      if(!bResolved) {
 		break;
@@ -633,7 +633,7 @@ namespace gdaplanner {
 	  
 	  if(bExact) {
 	    if((this->isVariable() && exOther.isVariable()) ||
-	       strA == strB) {
+	       (strA == strB)) {
 	      bResolved = true;
 	    }
 	  } else {
@@ -710,7 +710,7 @@ namespace gdaplanner {
 	  } break;
 	}
 	}
-      } else if(m_tpType == String) {
+      } else if(m_tpType == String && !bExact) {
 	std::string strUs = this->get<std::string>();
 	
 	if(strUs.size() > 0) {
@@ -719,7 +719,7 @@ namespace gdaplanner {
 	    bResolved = true;
 	  }
 	}
-      } else if(exOther.type() == String) {
+      } else if(exOther.type() == String && !bExact) {
 	std::string strThem = exOther.get<std::string>();
 	
 	if(strThem.size() > 0) {
@@ -800,6 +800,8 @@ namespace gdaplanner {
     
     static std::vector<Expression> parseString(std::string strSource);
     static std::vector<Expression> parseString(std::string& strSource, unsigned int& unPos);
+    
+    static Expression parseSingle(std::string strSource);
     
     template<class ... Args>
       static Expression::Ptr create(Args ... args) {

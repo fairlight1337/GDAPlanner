@@ -24,7 +24,7 @@ namespace gdaplanner {
     ~World();
     
     bool assertFact(Expression exFact);
-    std::vector<std::map<std::string, Expression>> retractFact(Expression exFact, unsigned int unLimit = 0);
+    std::vector<std::map<std::string, Expression>> retractFact(Expression exFact, unsigned int unLimit = 0, bool bExact = false);
     
     std::vector<std::map<std::string, Expression>> holds(Expression exFact, bool bExact = false);
     

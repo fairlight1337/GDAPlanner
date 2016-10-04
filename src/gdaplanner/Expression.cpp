@@ -29,6 +29,16 @@ namespace gdaplanner {
   Expression::~Expression() {
   }
   
+  Expression Expression::parseSingle(std::string strSource) {
+    std::vector<Expression> vecParsed = Expression::parseString(strSource);
+    
+    if(vecParsed.size() > 0) {
+      return vecParsed[0];
+    }
+    
+    throw std::exception();
+  }
+  
   std::vector<Expression> Expression::parseString(std::string strSource) {
     unsigned int unPos = 0;
     strSource = "(" + strSource + ")";

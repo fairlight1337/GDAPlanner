@@ -24,7 +24,7 @@ namespace gdaplanner {
     return false;
   }
   
-  std::vector<std::map<std::string, Expression>> World::retractFact(Expression exFact, unsigned int unLimit) {
+  std::vector<std::map<std::string, Expression>> World::retractFact(Expression exFact, unsigned int unLimit, bool bExact) {
     std::vector<std::map<std::string, Expression>> vecResolutions;
     bool bNotDone = true;
     
@@ -33,7 +33,7 @@ namespace gdaplanner {
       
       for(; itFact != m_lstFacts.end(); ++itFact) {
 	bool bResolved;
-	std::map<std::string, Expression> mapResolution = exFact.resolve(*itFact, bResolved);
+	std::map<std::string, Expression> mapResolution = exFact.resolve(*itFact, bResolved, bExact);
 	
 	if(bResolved) {
 	  vecResolutions.push_back(mapResolution);
