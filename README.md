@@ -40,7 +40,7 @@ To regenerate the Doxygen documentation, you will need Doxygen:
 sudo apt-get install doxygen
 ```
 
-From the project's root directory, rrun Doxygen like so:
+From the project's root directory, run Doxygen like so:
 ```bash
 doxygen doc/Doxyfile
 ```
