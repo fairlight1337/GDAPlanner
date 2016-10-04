@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include <gdaplanner/Expression.h>
+#include <gdaplanner/Predicate.h>
 #include <gdaplanner/Printable.h>
 
 
@@ -15,13 +16,13 @@ namespace gdaplanner {
     typedef std::shared_ptr<Action> Ptr;
     
   private:
-    Expression m_exAction;
+    Predicate::Ptr m_pdPredicate;
     Expression m_exPreconditions;
     Expression m_exEffects;
     
   protected:
   public:
-    Action(Expression exAction, Expression exPreconditions, Expression exEffects);
+    Action(Predicate::Ptr pdPredicate, Expression exPreconditions, Expression exEffects);
     ~Action();
     
     virtual std::string toString() override;

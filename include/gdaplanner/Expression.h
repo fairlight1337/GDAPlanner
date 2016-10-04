@@ -505,6 +505,28 @@ namespace gdaplanner {
       m_vecSubExpressions.push_back(exAdd);
     }
     
+    Expression popFront() {
+      if(m_tpType == List) {
+	if(m_vecSubExpressions.size() > 0) {
+	  Expression exReturn = m_vecSubExpressions[0];
+	  m_vecSubExpressions.erase(m_vecSubExpressions.begin());
+	  
+	  return exReturn;
+	}
+      }
+      
+      throw std::exception();
+    }
+    
+    void pushFront(Expression exPush) {
+      if(m_tpType != List) {
+	m_vecSubExpressions.push_back(*this);
+	m_tpType = List;
+      }
+      
+      m_vecSubExpressions.insert(m_vecSubExpressions.begin(), exPush);
+    }
+    
     static std::vector<Expression> parseString(std::string strSource);
     static std::vector<Expression> parseString(std::string& strSource, unsigned int& unPos);
     

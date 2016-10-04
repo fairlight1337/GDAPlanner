@@ -25,8 +25,8 @@ namespace gdaplanner {
       sts << std::endl;
       
       sts << "Predicates:" << std::endl;
-      for(Predicate prPred : m_vecPredicates) {
-	sts << " * " << prPred << std::endl;
+      for(Predicate::Ptr prPred : m_vecPredicates) {
+	sts << " * " << *prPred << std::endl;
       }
       
       return sts.str();
@@ -68,57 +68,115 @@ namespace gdaplanner {
       return (std::find(m_vecTypes.begin(), m_vecTypes.end(), strType) != m_vecTypes.end());
     }
     
-    bool PDDL::addPredicate(Expression exPredicate) {
-      if(exPredicate.type() == Expression::List) {
-	Expression exArguments = exPredicate.subSequence(1);
+    Predicate::Ptr PDDL::parsePredicate(Expression exPredicate) {
+      Expression exArguments = exPredicate.subSequence(1);
+      
+      std::vector<std::pair<Expression, Expression>> vecTypedVariables;
+      
+      while(exArguments.size() > 0) {
+	std::vector<Expression> vecVariables;
 	
-	std::vector<std::pair<Expression, Expression>> vecTypedVariables;
+	while(exArguments.size() > 0 && exArguments[0].isVariable()) {
+	  vecVariables.push_back(exArguments[0]);
+	  exArguments = exArguments.subSequence(1);
+	}
 	
-	while(exArguments.size() > 0) {
-	  std::vector<Expression> vecVariables;
-	  
-	  while(exArguments.size() > 0 && exArguments[0].isVariable()) {
-	    vecVariables.push_back(exArguments[0]);
+	if(exArguments.size() > 0) {
+	  if(exArguments[0] == "-") {
 	    exArguments = exArguments.subSequence(1);
-	  }
-	  
-	  if(exArguments.size() > 0) {
-	    if(exArguments[0] == "-") {
-	      exArguments = exArguments.subSequence(1);
-	      
-	      if(exArguments.size() > 0) {
-		for(Expression exVariables : vecVariables) {
-		  vecTypedVariables.push_back({exVariables, exArguments[0]});
-		}
-		
-		exArguments = exArguments.subSequence(1);
-		vecVariables.clear();
-	      } else {
-		std::cerr << "Missing type specifier: " << exPredicate << std::endl;
-		break;
+	    
+	    if(exArguments.size() > 0) {
+	      for(Expression exVariables : vecVariables) {
+		vecTypedVariables.push_back({exVariables, exArguments[0]});
 	      }
+	      
+	      exArguments = exArguments.subSequence(1);
+	      vecVariables.clear();
 	    } else {
-	      Expression exPartial =  exArguments[0];
-	      std::cerr << "Unexpected identifier: " << exPartial << " (context: " << exPredicate << ")" << std::endl;
+	      std::cerr << "Missing type specifier: " << exPredicate << std::endl;
 	      break;
 	    }
 	  } else {
-	    // No typing
-	    vecVariables.clear();
+	    Expression exPartial =  exArguments[0];
+	    std::cerr << "Unexpected identifier: " << exPartial << " (context: " << exPredicate << ")" << std::endl;
+	    break;
+	  }
+	} else {
+	  // No typing
+	  vecVariables.clear();
+	}
+      }
+      
+      Expression exAdd = exPredicate[0];
+      for(std::pair<Expression, Expression> prPair : vecTypedVariables) {
+	exAdd.add(prPair.first);
+      }
+      
+      Predicate::Ptr pdAdd = Predicate::create(exAdd);
+      for(std::pair<Expression, Expression> prPair : vecTypedVariables) {
+	pdAdd->setType(prPair.first.get<std::string>(), prPair.second.get<std::string>());
+      }
+      
+      return pdAdd;
+    }
+    
+    bool PDDL::addPredicate(Expression exPredicate) {
+      if(exPredicate.type() == Expression::List) {
+	Predicate::Ptr pdPredicate = this->parsePredicate(exPredicate);
+	
+	if(pdPredicate) {
+	  m_vecPredicates.push_back(pdPredicate);
+	} else {
+	  return false;
+	}
+	
+	return true;
+      }
+      
+      return false;
+    }
+    
+    bool PDDL::addFunctions(Expression exFunctions) {
+      // ...
+      
+      return true;
+    }
+    
+    bool PDDL::addAction(Expression exAction) {
+      if(exAction.size() > 0) {
+	Expression exName = exAction.popFront();
+	
+	Expression exParameters;
+	Expression exPrecondition;
+	Expression exEffect;
+	
+	while(exAction.size() > 0) {
+	  Expression* exTarget = nullptr;
+	  
+	  if(exAction[0] == ":parameters") {
+	    exTarget = &exParameters;
+	  } else if(exAction[0] == ":precondition") {
+	    exTarget = &exPrecondition;
+	  } else if(exAction[0] == ":effect") {
+	    exTarget = &exEffect;
+	  }
+	  
+	  exAction.popFront();
+	  
+	  if(exTarget) {
+	    if(exAction.size() > 0) {
+	      *exTarget = exAction.popFront();
+	    }
 	  }
 	}
 	
-	Expression exAdd = exPredicate[0];
-	for(std::pair<Expression, Expression> prPair : vecTypedVariables) {
-	  exAdd.add(prPair.first);
-	}
+	Expression exPrePredicate = exParameters;
+	exPrePredicate.pushFront(exName);
 	
-	Predicate pdAdd(exAdd);
-	for(std::pair<Expression, Expression> prPair : vecTypedVariables) {
-	  pdAdd.setType(prPair.first.get<std::string>(), prPair.second.get<std::string>());
-	}
+	Predicate::Ptr pdPredicate = this->parsePredicate(exPrePredicate);
 	
-	m_vecPredicates.push_back(pdAdd);
+	Action::Ptr acAdd = Action::create(pdPredicate, exPrecondition, exEffect);
+	m_vecActions.push_back(acAdd);
 	
 	return true;
       }

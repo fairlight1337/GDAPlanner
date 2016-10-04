@@ -26,17 +26,18 @@ namespace gdaplanner {
     
     std::vector<Declaration::Ptr> m_vecDeclarations;
     std::vector<Alias::Ptr> m_vecAliases;
-    std::vector<Action::Ptr> m_vecActions;
     std::vector<State::Ptr> m_vecStates;
     
   protected:
+    std::vector<Action::Ptr> m_vecActions;
+    
   public:
     Context(std::string strIdentifier = "");
     ~Context();
     
     void declare(std::string strIdentifier, Expression expDeclare);
     void alias(Expression exAlias, std::vector<Expression> vecAliased);
-    void action(Expression exAction, Expression exPreconditions, Expression exEffects);
+    void action(Expression exPreconditions, Expression exEffects);
     void state(Expression exState, Expression exPreconditions);
     
     std::vector<State::Ptr> matchingStates(Expression exMatch);    

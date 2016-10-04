@@ -53,68 +53,19 @@ namespace gdaplanner {
 		  
 		  bResult = bOK;
 		} else if(strSection == ":functions") {
-		  bResult = true;
+		  bResult = pcxCtx->addFunctions(exDetail.subSequence(1));
 		} else if(strSection == ":action") {
-		  bResult = true;
+		  bResult = pcxCtx->addAction(exDetail.subSequence(1));
 		}
+	      }
+	      
+	      if(!bResult) {
+		break;
 	      }
 	    }
 	  }
 	}
       }
-      
-      // if(exProcess.size() > 0) {
-      // 	contexts::PDDL::Ptr pcxCtx = std::dynamic_pointer_cast<contexts::PDDL>(ctxContext);
-      //   std::string strCommand = exProcess[0].get<std::string>();
-
-      //   if(strCommand == "declare") {
-      // 	  bool bDeclareGood = true;
-
-      // 	  for(unsigned int unI = 1; unI < exProcess.size(); ++unI) {
-      // 	    if(exProcess[unI].size() == 2) {
-      // 	      std::string strVariable = exProcess[unI][0].get<std::string>();
-
-      // 	      if(strVariable != "") {
-      // 		pcxCtx->declare(strVariable, exProcess[unI][1]);
-      // 	      } else {
-      // 		bDeclareGood = false;
-
-      // 		break;
-      // 	      }
-      // 	    } else {
-      // 	      bDeclareGood = false;
-
-      // 	      break;
-      // 	    }
-      // 	  }
-
-      // 	  bResult = bDeclareGood;
-      // 	} else if(strCommand == "alias") {
-      // 	  if(exProcess.size() > 2) {
-      // 	    pcxCtx->alias(exProcess[1], exProcess.subSequence(2));
-	    
-      // 	    bResult = true;
-      // 	  }
-      //   } else if(strCommand == "action") {
-      // 	  if(exProcess.size() == 4) {
-      // 	    pcxCtx->action(exProcess[1], exProcess[2], exProcess[3]);
-	    
-      // 	    bResult = true;
-      // 	  }
-      //   } else if(strCommand == "state") {
-      // 	  if(exProcess.size() == 3) {
-      //       pcxCtx->state(exProcess[1], exProcess[2]);
-	    
-      // 	    bResult = true;
-      // 	  }
-      //   } else if(strCommand == "fact") {
-      // 	  if(exProcess.size() == 2) {
-      // 	    pcxCtx->fact(exProcess[1]);
-	    
-      // 	    bResult = true;
-      // 	  }
-      //   }
-      // }
       
       return bResult;
     }

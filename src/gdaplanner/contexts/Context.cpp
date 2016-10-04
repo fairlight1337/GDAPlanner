@@ -16,8 +16,8 @@ namespace gdaplanner {
     m_vecAliases.push_back(Alias::create(exAlias, vecAliased));
   }
   
-  void Context::action(Expression exAction, Expression exPreconditions, Expression exEffects) {
-    m_vecActions.push_back(Action::create(exAction, exPreconditions, exEffects));
+  void Context::action(Expression exPreconditions, Expression exEffects) {
+    m_vecActions.push_back(Action::create(nullptr, exPreconditions, exEffects));
   }
   
   void Context::state(Expression exState, Expression exPreconditions) {

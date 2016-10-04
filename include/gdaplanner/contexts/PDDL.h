@@ -8,6 +8,7 @@
 
 #include <gdaplanner/contexts/StatefulContext.h>
 #include <gdaplanner/Predicate.h>
+#include <gdaplanner/Action.h>
 
 
 namespace gdaplanner {
@@ -20,7 +21,7 @@ namespace gdaplanner {
       std::string m_strDomain;
       std::vector<std::string> m_vecRequirements;
       std::vector<std::string> m_vecTypes;
-      std::vector<Predicate> m_vecPredicates;
+      std::vector<Predicate::Ptr> m_vecPredicates;
       
     protected:
     public:
@@ -37,7 +38,11 @@ namespace gdaplanner {
       std::vector<std::string> types();
       bool hasType(std::string strType);
       
+      Predicate::Ptr parsePredicate(Expression exPredicate);
       bool addPredicate(Expression exPredicate);
+      
+      bool addFunctions(Expression exFunctions);
+      bool addAction(Expression exAction);
       
       virtual std::string toString() override;
       
