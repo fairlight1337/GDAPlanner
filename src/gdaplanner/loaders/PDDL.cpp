@@ -54,6 +54,8 @@ namespace gdaplanner {
 		  bResult = bOK;
 		} else if(strSection == ":functions") {
 		  bResult = pcxCtx->addFunctions(exDetail.subSequence(1));
+		} else if(strSection == ":constants") {
+		  bResult = pcxCtx->addConstants(exDetail.subSequence(1));
 		} else if(strSection == ":action") {
 		  bResult = pcxCtx->addAction(exDetail.subSequence(1));
 		}

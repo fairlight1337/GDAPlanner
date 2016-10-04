@@ -29,6 +29,21 @@ namespace gdaplanner {
 	sts << " * " << *prPred << std::endl;
       }
       
+      sts << "Constant types:" << std::endl;
+      for(std::pair<std::string, std::string> prConstant : m_mapConstants) {
+	sts << " * " << prConstant.first << " : " << prConstant.second << std::endl;
+      }
+      
+      sts << "Functions:" << std::endl;
+      for(Function fnFunction : m_vecFunctions) {
+	sts << " * " << *fnFunction.pdPredicate << " : " << fnFunction.strType << std::endl;
+      }
+      
+      sts << "Actions:" << std::endl;
+      for(Action::Ptr acAction : m_vecActions) {
+	sts << " * " << *acAction << std::endl;
+      }
+      
       return sts.str();
     }
     
@@ -107,7 +122,9 @@ namespace gdaplanner {
 	}
       }
       
-      Expression exAdd = exPredicate[0];
+      Expression exAdd;
+      exAdd.add(exPredicate[0]);
+      
       for(std::pair<Expression, Expression> prPair : vecTypedVariables) {
 	exAdd.add(prPair.first);
       }
@@ -137,7 +154,25 @@ namespace gdaplanner {
     }
     
     bool PDDL::addFunctions(Expression exFunctions) {
-      // ...
+      Expression exFunction = Expression::parseString("(?predicate - ?type)")[0];
+      
+      while(exFunctions.size() >= 3) {
+	Expression exBatch = exFunctions.subSequence(0, 3);
+	
+	bool bResolved;
+	std::map<std::string, Expression> mapResolved = exFunction.resolve(exBatch, bResolved);
+	
+	if(bResolved) {
+	  Expression exPredicate = mapResolved["?predicate"];
+	  Expression exType = mapResolved["?type"];
+	  
+	  m_vecFunctions.push_back({this->parsePredicate(exPredicate), exType.get<std::string>()});
+	} else {
+	  return false;
+	}
+	
+	exFunctions = exFunctions.subSequence(3);
+      }
       
       return true;
     }
@@ -182,6 +217,40 @@ namespace gdaplanner {
       }
       
       return false;
+    }
+    
+    bool PDDL::addConstants(Expression exConstants) {
+      std::vector<Expression> vecConstants;
+      std::vector<std::pair<Expression, Expression>> vecTypedConstants;
+      
+      while(exConstants.size() > 0) {
+	vecConstants.push_back(exConstants.popFront());
+	
+	if(exConstants.size() > 0) {
+	  if(exConstants[0] == "-") {
+	    exConstants.popFront();
+	    
+	    if(exConstants.size() > 0) {
+	      for(Expression exConstant : vecConstants) {
+		vecTypedConstants.push_back({exConstant, exConstants[0]});
+	      }
+	      
+	      exConstants.popFront();
+	      vecConstants.clear();
+	    }
+	  }
+	}
+      }
+      
+      for(std::pair<Expression, Expression> prPair : vecTypedConstants) {
+	m_mapConstants[prPair.first.get<std::string>()] = prPair.second.get<std::string>();
+      }
+      
+      return true;
+    }
+    
+    std::string PDDL::constantType(std::string strConstant) {
+      return m_mapConstants[strConstant];
     }
   }
 }

@@ -10,8 +10,16 @@
 	       (made ?p - product)
 	       (stacks-avail ?s - count)
 	       (next-count ?s ?ns - count))
-
-  (:functions (total-cost) - number)
+  (:constants
+              verysmooth smooth rough - surface
+              varnished glazed untreated colourfragments - treatmentstatus
+              natural - acolour
+              small medium large - apartsize)
+  (:functions (total-cost) - number
+		(spray-varnish-cost ?obj - part) - number
+            (glaze-cost ?obj - part) - number
+            (grind-cost ?obj - part) - number
+            (plane-cost ?obj - part) - number)
 	       
   (:action make-product
     :parameters (?p - product)

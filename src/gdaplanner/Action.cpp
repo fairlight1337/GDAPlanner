@@ -11,7 +11,9 @@ namespace gdaplanner {
   std::string Action::toString() {
     std::stringstream sts;
     
-    sts << "predicate = " << *m_pdPredicate << ", preconditions = " << m_exPreconditions << ", effects = " << m_exEffects;
+    sts << "predicate = " << *m_pdPredicate << std::endl;
+    sts << "   preconditions = " << m_exPreconditions << std::endl;
+    sts << "   effects = " << m_exEffects;
     
     return sts.str();
   }

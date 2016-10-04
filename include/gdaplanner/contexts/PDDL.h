@@ -17,11 +17,18 @@ namespace gdaplanner {
     public:
       typedef std::shared_ptr<PDDL> Ptr;
       
+      typedef struct {
+	Predicate::Ptr pdPredicate;
+	std::string strType;
+      } Function;
+      
     private:
       std::string m_strDomain;
       std::vector<std::string> m_vecRequirements;
       std::vector<std::string> m_vecTypes;
+      std::map<std::string, std::string> m_mapConstants;
       std::vector<Predicate::Ptr> m_vecPredicates;
+      std::vector<Function> m_vecFunctions;
       
     protected:
     public:
@@ -43,6 +50,9 @@ namespace gdaplanner {
       
       bool addFunctions(Expression exFunctions);
       bool addAction(Expression exAction);
+      bool addConstants(Expression exConstants);
+      
+      std::string constantType(std::string strConstant);
       
       virtual std::string toString() override;
       
