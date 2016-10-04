@@ -262,7 +262,7 @@ namespace gdaplanner {
 	
 	Usage example:
 	\code{.cpp}
-	Expression exPrototype = Expression::parseString("(an object ((type ?type) (color ?color) (size ?size)))");
+	Expression exPrototype = Expression::parseString("(an object ((type ?type) (color ?color) (size ?size)))")[0];
 	Expression exInstance = exPrototype.parametrize({{"?type", "Cup"}, {"?color", "red"}});
 	
 	std::cout << exInstance << std::endl; // Will print `(an object ((type Cup) (color red) (size ?size)))`
@@ -275,8 +275,8 @@ namespace gdaplanner {
 	
 	The replacement can be whole Expression instances:
 	\code{.cpp}
-	Expression exPrototype = Expression::parseString("(an action-sequence ?do))");
-	Expression exDo = Expression::parseString("((pick ?object) (place ?object ?location))");
+	Expression exPrototype = Expression::parseString("(an action-sequence ?do))")[0];
+	Expression exDo = Expression::parseString("((pick ?object) (place ?object ?location))")[0];
 	Expression exInstance = exPrototype.parametrize({{"?do", exDo}});
 	
 	std::cout << exInstance << std::endl; // Will print `(an action-sequence ((pick ?object) (place ?object ?location)))
@@ -577,21 +577,21 @@ namespace gdaplanner {
 	
 	Usage example:
 	\code{.cpp}
-	Expression exPrototype = Expression::parseString("(place-object ?object ?location)");
+	Expression exPrototype = Expression::parseString("(place-object ?object ?location)")[0];
 	
-	Expression exSituationA = Expression::parseString("(place-object Cup Table)");
+	Expression exSituationA = Expression::parseString("(place-object Cup Table)")[0];
 	std::map<std::string, Expression> mapResolutionA = exPrototype.resolve(exSituationA);
 	// mapResolutionA is now `{{"?object", "Cup"}, {"?location", "Table"}}`
 	
-	Expression exSituationB = Expression::parseString("(place-object (an object) Table)");
+	Expression exSituationB = Expression::parseString("(place-object (an object) Table)")[0];
 	std::map<std::string, Expression> mapResolutionB = exPrototype.resolve(exSituationA);
 	// mapResolutionA is now `{{"?object", Expression<"(an object)">}, {"?location", "Table"}}`
 	\endcode
 	
 	Variables on both sides:
 	\code{.cpp}
-	Expression exProtoA = Expression::parseString("(predicate ?a 2)");
-	Expression exProtoB = Expression::parseString("(predicate 1 ?b)");
+	Expression exProtoA = Expression::parseString("(predicate ?a 2)")[0];
+	Expression exProtoB = Expression::parseString("(predicate 1 ?b)")[0];
 	
 	std::map<std::string, Expression> mapResolutionA = exProtoA.resolve(exProtoB);
 	// mapResolutionA is now `{{"?a", 1}, {"?b", 2}}`
