@@ -68,7 +68,7 @@ namespace gdaplanner {
 	  }
 	}
       }
-      
+      std::cout << "Return from ctx" << std::endl;
       return bResult;
     }
     
@@ -76,10 +76,76 @@ namespace gdaplanner {
       return contexts::PDDL::create();
     }
     
-    bool PDDL::processExpression(Expression exProcess, problems::Problem::Ptr prbContext) {
-      // ...
+    bool PDDL::processExpression(Expression exProcess, problems::Problem::Ptr prbProblem) {
+      bool bResult = false;
       
-      return true;
+      if(exProcess.type() == Expression::List && exProcess.size() > 0) {
+	problems::PDDL::Ptr prbPrb = std::dynamic_pointer_cast<problems::PDDL>(prbProblem);
+	
+	if(prbPrb) {
+	  if(exProcess[0] == "define") {
+	    if(exProcess.size() > 1 && exProcess[1].size() == 2) {
+	      if(exProcess[1][0] == "problem") {
+		bResult = true;
+		prbPrb->setIdentifier(exProcess[1][1].get<std::string>());
+		
+		Expression exDetails = exProcess.subSequence(2);
+		std::vector<Expression> vecSubExpressions = exDetails.subExpressions();
+		
+		for(Expression exDetail : vecSubExpressions) {
+		  if(exDetail.type() == Expression::List && exDetail.size() > 1) {
+		    if(exDetail[0] == ":domain") {
+		      if(exDetail.size() == 2) {
+			prbPrb->setDomain(exDetail[1].get<std::string>());
+		      } else {
+			bResult = false;
+		      }
+		    } else if(exDetail[0] == ":objects") {
+		      exDetail.popFront();
+		      
+		      while(exDetail.size() > 0) {
+			std::vector<Expression> vecObject;
+			
+			while(!(exDetail[0] == "-") && exDetail.size() > 0) {
+			  vecObject.push_back(exDetail[0]);
+			  exDetail.popFront();
+			}
+			
+			if(exDetail.size() > 1) {
+			  exDetail.popFront();
+			  
+			  if(exDetail.size() > 0) {
+			    std::string strType = exDetail[0].get<std::string>();
+			    for(Expression exObject : vecObject) {
+			      prbPrb->addObject(exObject.get<std::string>(), strType);
+			    }
+			  }
+			} else {
+			  break;
+			}
+		      }
+		    } else if(exDetail[0] == ":init") {
+		      prbPrb->setInitExpressions(exDetail.subSequence(1));
+		    } else if(exDetail[0] == ":goal") {
+		      prbPrb->setGoal(exDetail[1]);
+		    } else if(exDetail[0] == ":metric") {
+		      prbPrb->setMetric(exDetail.subSequence(1));
+		    }
+		  }
+		  
+		  if(!bResult) {
+		    break;
+		  }
+		}
+	      }
+	    }
+	  }
+	}
+      }
+      
+      std::cout << "Return from prb" << std::endl;
+      
+      return bResult;
     }
     
     problems::Problem::Ptr PDDL::makeProblem() {

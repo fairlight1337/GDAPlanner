@@ -53,7 +53,6 @@ namespace gdaplanner {
 	  for(Expression exExpression : vecExpressions) {
 	    if(!this->processExpression(exExpression, prbProblem)) {
 	      bAllGood = false;
-	      
 	      break;
 	    }
 	  }

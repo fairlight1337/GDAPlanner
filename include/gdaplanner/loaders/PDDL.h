@@ -25,7 +25,7 @@ namespace gdaplanner {
       virtual bool processExpression(Expression exProcess, contexts::Context::Ptr ctxContext) override;
       virtual contexts::Context::Ptr makeContext() override;
       
-      virtual bool processExpression(Expression exProcess, problems::Problem::Ptr ctxProblem) override;
+      virtual bool processExpression(Expression exProcess, problems::Problem::Ptr prbProblem) override;
       virtual problems::Problem::Ptr makeProblem() override;
       
       template<class ... Args>
