@@ -20,6 +20,7 @@ namespace gdaplanner {
   namespace contexts {
     class Context : public Printable {
     public:
+      /** Shared pointer to Context class */
       typedef std::shared_ptr<Context> Ptr;
     
     private:

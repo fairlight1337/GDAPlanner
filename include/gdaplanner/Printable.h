@@ -10,6 +10,7 @@
 namespace gdaplanner {
   class Printable {
   public:
+    /** Shared pointer to Printable class */
     typedef std::shared_ptr<Printable> Ptr;
     
   private:

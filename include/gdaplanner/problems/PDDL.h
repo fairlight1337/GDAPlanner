@@ -16,6 +16,7 @@ namespace gdaplanner {
     /** \brief PDDL planning problem definition */
     class PDDL : public Problem {
     public:
+      /** Shared pointer to PDDL class */
       typedef std::shared_ptr<PDDL> Ptr;
       
       typedef struct {

@@ -14,6 +14,7 @@ namespace gdaplanner {
   namespace planners {
     class ForwardPlanner : public Planner {
     public:
+      /** Shared pointer to ForwardPlanner class */
       typedef std::shared_ptr<ForwardPlanner> Ptr;
       
     private:

@@ -13,6 +13,7 @@
 namespace gdaplanner {
   class Predicate : public Printable {
   public:
+    /** Shared pointer to Predicate class */
     typedef std::shared_ptr<Predicate> Ptr;
     
   private:

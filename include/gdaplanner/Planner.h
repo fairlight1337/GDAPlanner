@@ -13,6 +13,7 @@
 namespace gdaplanner {
   class Planner {
   public:
+    /** Shared pointer to Planner class */
     typedef std::shared_ptr<Planner> Ptr;
     
   private:

@@ -12,6 +12,7 @@
 namespace gdaplanner {
   class State : public Printable {
   public:
+    /** Shared pointer to State class */
     typedef std::shared_ptr<State> Ptr;
     
   private:

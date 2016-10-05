@@ -13,6 +13,7 @@ namespace gdaplanner {
     /** \brief Planning problem definition */
     class Problem : public Printable {
     public:
+      /** Shared pointer to Problem class */
       typedef std::shared_ptr<Problem> Ptr;
       
     private:

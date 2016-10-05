@@ -16,6 +16,7 @@ namespace gdaplanner {
   namespace contexts {
     class StatefulContext : public contexts::Context {
     public:
+      /** Shared pointer to StatefulContext class */
       typedef std::shared_ptr<StatefulContext> Ptr;
     
     private:

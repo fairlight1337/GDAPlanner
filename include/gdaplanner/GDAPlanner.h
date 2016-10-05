@@ -20,16 +20,27 @@
 
 
 namespace gdaplanner {
+  /** \brief Main GDAPlanner management class
+      
+      This class manages all loaded contexts and supplies convenience
+      functions and function wrappers for reading context and problem
+      files, accessing active contexts, and starting planning.
+  
+      \since 0.1.0 */
   class GDAPlanner {
   public:
+    /** \brief Shared pointer to GDAPlanner class */
     typedef std::shared_ptr<GDAPlanner> Ptr;
     
   private:
+    /** \brief Deque holding the loaded Context instances */
     std::deque<contexts::Context::Ptr> m_dqContexts;
     
   protected:
   public:
+    /** \brief Default constructor */
     GDAPlanner();
+    /** \brief Default destructor */
     ~GDAPlanner();
     
     template<class T, class ... Args>
@@ -41,12 +52,23 @@ namespace gdaplanner {
       return ctxNew;
     }
     
+    /** \brief Push a Context instance onto the stack and make it current */
     void pushContextInstance(contexts::Context::Ptr ctxPush) {
       m_dqContexts.push_front(ctxPush);
     }
     
+    /** \brief Remove the topmost context from the stack
+	
+	If the stack is empty, a std::exception is thrown.
+	
+	\throws std::exception Thrown when called with an empty stack */
     void popContext();
     
+    /** \brief Return the topmost Context instance from the stack
+	
+	Returns `NULL` if the Context stack is empty.
+	
+	\return Currently topmost Context instance from the stack, or NULL */
     contexts::Context::Ptr currentContext();
     
     template<class TLoader>
@@ -76,17 +98,6 @@ namespace gdaplanner {
     
     template<class T>
       bool plan(problems::Problem::Ptr prbProblem) {
-      //std::vector<State::Ptr> vecMatchingStates = this->currentContext()->matchingStates(exTargetState);
-      
-      /*if(vecMatchingStates.size() > 0) {
-	for(State::Ptr stGoalState : vecMatchingStates) {
-	  State::Ptr stParametrizedGoal = stGoalState->parametrize(exTargetState);
-	  
-	}
-	
-	return true;
-	}*/
-      
       Planner::Ptr prPlanner = T::create();
       prPlanner->plan(prbProblem, this->currentContext());
       

@@ -11,8 +11,12 @@
 
 
 namespace gdaplanner {
+  /** \brief Class representing a first-order Action
+      
+      \since 0.1.0 */
   class Action : public Printable {
   public:
+    /** Shared pointer to Action class */
     typedef std::shared_ptr<Action> Ptr;
     
   private:

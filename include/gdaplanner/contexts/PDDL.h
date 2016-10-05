@@ -19,8 +19,8 @@ namespace gdaplanner {
       typedef std::shared_ptr<PDDL> Ptr;
       
       typedef struct {
-	Predicate::Ptr pdPredicate;
-	std::string strType;
+	Predicate::Ptr pdPredicate;  /**< Predicate identifying the Function's signature */
+	std::string strType;         /**< Return type of this Function */
       } Function;
       
     private:

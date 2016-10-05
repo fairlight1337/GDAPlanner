@@ -12,29 +12,52 @@
 
 
 namespace gdaplanner {
+  /** \brief Base class for storing values anonymously
+      
+      This class represents an anonymous pointer for polymorphic
+      instances of type Value. This class offers a pointer that can be
+      stored such that the original template argument of the Value
+      class doesn't need to be stored. Before using, this pointer must
+      be cast into the appropriate Value<T> class.
+      
+      \since 0.1.0 */
   class ValueBase {
   public:
-    /** Shared pointer to ValueBase class **/
+    /** Shared pointer to ValueBase class */
     typedef std::shared_ptr<ValueBase> Ptr;
     
     ValueBase() {}
     virtual ~ValueBase() {}
   };
   
+  /** \brief Anonymous value holding class
+      
+      Templated with the type T, instances of this class can hold any
+      data type. This is useful if the data type is not known in
+      advance, and needs to be stored type-agnostically.
+      
+      \since 0.1.0 */
   template<typename T>
     class Value : public ValueBase {
   public:
-    /** Shared pointer to Value class **/
+    /** Shared pointer to Value class */
     typedef std::shared_ptr<Value<T>> Ptr;
     
   private:
+    /** \brief The data to store
+     
+	The data type is based on the class's template parameter T.
+    
+	\since 0.1.0 */
     T m_tValue;
     
   public:
     Value(T tValue) : m_tValue(tValue) {}
     ~Value() {}
     
+    /** \brief Return the currently stored data */
     T get() { return m_tValue; }
+    /** \brief Equivalent to get() */
     T operator*() { return this->get(); }
     
     template<class ... Args>
@@ -50,10 +73,10 @@ namespace gdaplanner {
       * Other Expressions (as a list structure)
       * Atoms (currently everything defined in Expression::Type)
       
-   */
+      \since 0.1.0 */
   class Expression : public Printable {
   public:
-    /** Shared pointer to Expression class **/
+    /** Shared pointer to Expression class */
     typedef std::shared_ptr<Expression> Ptr;
     
     typedef enum {

@@ -15,6 +15,7 @@ namespace gdaplanner {
   namespace loaders {
     class Loader {
     public:
+      /** Shared pointer to Loader class */
       typedef std::shared_ptr<Loader> Ptr;
       
     private:

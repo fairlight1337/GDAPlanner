@@ -10,8 +10,14 @@
 
 
 namespace gdaplanner {
+  /** \brief Class representing a predicate Alias
+      
+      \deprecated This class is currently unused. If no valid use-case comes up, it will be removed.
+      
+      \since 0.1.0 */
   class Alias : public Printable {
   public:
+    /** Shared pointer to Alias class */
     typedef std::shared_ptr<Alias> Ptr;
     
   private:
