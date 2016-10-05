@@ -8,6 +8,8 @@
 #include <gdaplanner/contexts/Context.h>
 #include <gdaplanner/contexts/StatefulContext.h>
 #include <gdaplanner/problems/Problem.h>
+#include <gdaplanner/World.h>
+#include <gdaplanner/Prolog.h>
 
 
 namespace gdaplanner {
