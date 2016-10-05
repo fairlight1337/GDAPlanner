@@ -7,6 +7,7 @@
 #include <vector>
 #include <sstream>
 #include <map>
+#include <functional>
 
 #include <gdaplanner/Printable.h>
 
@@ -821,6 +822,48 @@ namespace gdaplanner {
       m_vecSubExpressions.insert(m_vecSubExpressions.begin(), exPush);
     }
     
+    std::string stringify() {
+      std::stringstream sts;
+      
+      switch(m_tpType) {
+      case Float: { sts << this->get<float>(); } break;
+      case Double: { sts << this->get<double>(); } break;
+      case Integer: { sts << this->get<int>(); } break;
+      case UnsignedInteger: { sts << this->get<unsigned int>(); } break;
+	
+      case String: {
+	if(this->isWildcard() || this->isVariable()) {
+	  sts << "?";
+	} else {
+	  sts << this->get<std::string>();
+	}
+      } break;
+	
+      case List: {
+	sts << "(";
+	
+	bool bFirst = true;
+	for(Expression exSub : m_vecSubExpressions) {
+	  if(bFirst) {
+	    bFirst = false;
+	  } else {
+	    sts << " ";
+	  }
+	  
+	  sts << exSub.stringify();
+	}
+	
+	sts << ")";
+      } break;
+      }
+      
+      return sts.str();
+    }
+    
+    size_t hash() {
+      return std::hash<std::string>()(this->stringify());
+    }
+    
     static std::vector<Expression> parseString(std::string strSource);
     static std::vector<Expression> parseString(std::string& strSource, unsigned int& unPos);
     
@@ -829,6 +872,15 @@ namespace gdaplanner {
     template<class ... Args>
       static Expression::Ptr create(Args ... args) {
       return std::make_shared<Expression>(std::forward<Args>(args)...);
+    }
+  };
+}
+
+
+namespace std {
+  template<> struct hash<gdaplanner::Expression> {
+    size_t operator()(gdaplanner::Expression const& exHash) const {
+      return ((gdaplanner::Expression)exHash).hash();
     }
   };
 }
