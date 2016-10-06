@@ -764,6 +764,10 @@ namespace gdaplanner {
       return bResolved;
     }
     
+    bool operator==(Expression::Type tpType) {
+      return m_tpType == tpType;
+    }
+    
     bool operator==(const char* arrcValue) {
       typename Value<std::string>::Ptr vlValue = std::dynamic_pointer_cast<Value<std::string>>(m_vbValue);
       
