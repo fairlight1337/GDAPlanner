@@ -37,6 +37,20 @@ namespace gdaplanner {
 	return m_mapBindings.find(strVariable) != m_mapBindings.end();
       }
       
+      bool superImpose(Bindings bdgOther) {
+	for(std::pair<std::string, Expression> prBinding : bdgOther.bindings()) {
+	  if(this->bound(prBinding.first)) {
+	    if(!((*this)[prBinding.first] == prBinding.second)) {
+	      return false;
+	    }
+	  } else {
+	    (*this)[prBinding.first] = prBinding.second;
+	  }
+	}
+	
+	return true;
+      }
+      
       virtual std::string toString() override {
 	std::stringstream sts;
 	
@@ -61,21 +75,25 @@ namespace gdaplanner {
     virtual std::string toString() override {
       std::stringstream sts;
       
-      sts << "Solution" << std::endl;
-      sts << m_bdgBindings;
+      if(m_bValid) {
+	sts << "Valid Solution" << std::endl;
+	sts << m_bdgBindings;
       
-      sts << "( ";
-      for(int nIndex : m_vecIndices) {
-	sts << nIndex << " ";
-      }
-      sts << ")" << std::endl;
-      
-      if(m_vecSubSolutions.size() > 0) {
-	sts << "[" << std::endl;
-	for(Solution solSub : m_vecSubSolutions) {
-	  sts << solSub;
+	sts << "( ";
+	for(int nIndex : m_vecIndices) {
+	  sts << nIndex << " ";
 	}
-	sts << "]" << std::endl;
+	sts << ")" << std::endl;
+      
+	if(m_vecSubSolutions.size() > 0) {
+	  sts << "[" << std::endl;
+	  for(Solution solSub : m_vecSubSolutions) {
+	    sts << solSub;
+	  }
+	  sts << "]" << std::endl;
+	}
+      } else {
+	sts << "Invalid Solution" << std::endl;
       }
       
       return sts.str();
@@ -97,12 +115,16 @@ namespace gdaplanner {
       m_vecSubSolutions.push_back(solSubAdd);
     }
     
-    Solution subSolution(unsigned int unIndex) {
-      if(unIndex < m_vecSubSolutions.size()) {
-	return m_vecSubSolutions[unIndex];
-      } else {
-	return Solution();
+    std::vector<Solution> subSolutions() {
+      return m_vecSubSolutions;
+    }
+    
+    Solution& subSolution(unsigned int unIndex) {
+      while(unIndex + 1 > m_vecSubSolutions.size()) {
+	this->addSubSolution(Solution());
       }
+      
+      return m_vecSubSolutions[unIndex];
     }
     
     void setValid(bool bValid) {
@@ -111,6 +133,14 @@ namespace gdaplanner {
     
     bool valid() {
       return m_bValid;
+    }
+    
+    std::map<std::string, Expression> finalBindings() {
+      if(m_vecSubSolutions.size() == 0) {
+	return m_bdgBindings.bindings();
+      } else {
+	return m_vecSubSolutions.back().bindings().bindings();
+      }
     }
     
     static Solution invalidSolution() {

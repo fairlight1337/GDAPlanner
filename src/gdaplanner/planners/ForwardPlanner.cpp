@@ -21,21 +21,20 @@ namespace gdaplanner {
       Solution solSolution;
       
       while(true) {
-	// solSolution = plProlog->query("(and (= ?a ((1 2) (3 4))) \
-        //                                     (member ?b ?a) \
-        //                                     (member ?c ?b))"
-	// 			      , solSolution);
-	//solSolution = plProlog->query("(and (= ?a ((1 2) (3 4)))	\
-	//                                  (member ?b ?a))"
-	//			      , solSolution);
+	solSolution = plProlog->query("(and (= ?a ((1 2) (3 4))) (member ?b ?a)	(member ?c ?b))", solSolution);
+	//solSolution = plProlog->query("(and (= ?a ((1 2) (3 4))) (member ?b ?a))", solSolution);
 	//solSolution = plProlog->query("(= (?a (?b ?c 4 ?d)) ((1 a) (2 3 4 5)))", solSolution);
 	//solSolution = plProlog->query("(member ?a ((1 2) (3 4) (a b)))", solSolution);
-	solSolution = plProlog->query("(member (?a ?b) ((1 2) (3 4) (a b)))", solSolution);
+	//solSolution = plProlog->query("(member (?a ?b) ((1 2) (3 4) (a b)))", solSolution);
 	
 	if(solSolution.valid()) {
 	  std::cout << "\033[1;31m" << std::endl;
 	  std::cout << "------------" << std::endl;
-	  std::cout << solSolution;
+	  std::map<std::string, Expression> mapBindings = solSolution.finalBindings();
+	  
+	  for(std::pair<std::string, Expression> prBinding : mapBindings) {
+	    std::cout << prBinding.first << " = " << prBinding.second << std::endl;
+	  }
 	  std::cout << "------------" << std::endl;
 	  std::cout << "\033[0m";
 	} else {

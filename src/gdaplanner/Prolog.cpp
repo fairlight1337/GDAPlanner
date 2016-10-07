@@ -48,18 +48,43 @@ namespace gdaplanner {
     if(exQueryBound.predicateName() == "and") {
       std::deque<Solution> dqSolutionStack;
       
+      if(solPrior.index() > -1) {
+	for(Solution solSub : solPrior.subSolutions()) {
+	  dqSolutionStack.push_back(solSub);
+	}
+	
+	if(dqSolutionStack.size() > 0) {
+	  dqSolutionStack.pop_back();
+	}
+      }
+      
       while(dqSolutionStack.size() < exQueryBound.size() - 1) {
-	std::cout << exQueryBound << std::endl;
 	unsigned int unIndex = dqSolutionStack.size();
-	
 	Expression exOperand = exQueryBound[unIndex + 1]; // Leap jump the predicate name
-	std::cout << exOperand << std::endl;
-	
 	Solution solOperand = this->unify(exOperand,
 					  solPrior.subSolution(unIndex),
 					  (unIndex > 0 ? dqSolutionStack.back().bindings().bindings() : bdgBindings));
-	
-	
+	  
+	if(solOperand.valid()) {
+	  dqSolutionStack.push_back(solOperand);
+	} else {
+	  if(dqSolutionStack.size() > 0) {
+	    dqSolutionStack.pop_back();
+	      
+	    for(unsigned int unI = unIndex; unI < solPrior.subSolutions().size(); ++unI) {
+	      solPrior.subSolution(unI).index() = -1;
+	    }
+	  } else {
+	    throw SolutionsExhausted();
+	  }
+	}
+      }
+      
+      solResult = Solution();
+      solResult.index() = solPrior.index() + 1;
+      
+      for(Solution solSub : dqSolutionStack) {
+	solResult.addSubSolution(solSub);
       }
     } else {
       std::map<std::string, Expression> mapResolution;
@@ -95,6 +120,12 @@ namespace gdaplanner {
 	    }
 	  }
 	}
+      }
+    }
+    
+    if(solResult.valid()) {
+      if(!solResult.bindings().superImpose(bdgBindings)) {
+	solResult.setValid(false);
       }
     }
     
