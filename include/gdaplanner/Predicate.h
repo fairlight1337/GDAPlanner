@@ -28,12 +28,13 @@ namespace gdaplanner {
     ~Predicate();
     
     Expression& expression();
+    Expression const& expression() const;
     std::string& type(std::string strVariable);
     void setType(std::string strVariable, std::string strType);
     bool isTyped(std::string strVariable);
     std::vector<std::string> variables();
     
-    virtual std::string toString() override;
+    virtual std::string toString() const override;
     
     template<class ... Args>
       static Predicate::Ptr create(Args ... args) {

@@ -43,7 +43,8 @@ namespace gdaplanner {
   public:
     /** Shared pointer to Value class */
     typedef std::shared_ptr<Value<T>> Ptr;
-    
+    typedef std::shared_ptr<Value<T> const> PtrConst;
+
   private:
     /** \brief The data to store
      
@@ -57,7 +58,7 @@ namespace gdaplanner {
     ~Value() {}
     
     /** \brief Return the currently stored data */
-    T get() { return m_tValue; }
+    T get() const { return m_tValue; }
     /** \brief Equivalent to get() */
     T operator*() { return this->get(); }
     
@@ -166,7 +167,7 @@ namespace gdaplanner {
     /** \brief Returns the Expression::Type of this instance 
 
 	\return Expression::Type of this instance */
-    Type type() {
+    Type type() const {
       return m_tpType;
     }
     
@@ -192,7 +193,7 @@ namespace gdaplanner {
 	
 	\return Value contained in the Expression instance, or T's default constructor */
     template<typename T>
-      T get() {
+      T get() const {
       if(m_tpType != List) {
 	typename Value<T>::Ptr vlValue = std::dynamic_pointer_cast<Value<T>>(m_vbValue);
 	
@@ -213,6 +214,26 @@ namespace gdaplanner {
     unsigned int size() {
       return m_vecSubExpressions.size();
     }
+
+    /** \brief Returns a vector containing names of the variables in the expression
+
+    List all variables occurring anywhere in the expression. Variable names begin
+    with '?'. The returned vector contains no duplicates. The wildcard variable,
+    '?_', is not returned.
+
+    Any content existing in the varNames parameter at the moment the function is
+    called is NOT erased.
+
+    \return Nothing*/
+    void getVarNames(std::vector<std::string> & varNames) const;
+
+    /** \brief Used to test if an exact copy of an expression occurs anywhere inside the
+     * current one.
+
+    Tests all the expression tree. Matching must be exact, no resolution is performed.
+
+    \return bool indicating whether some subexpression exactly matches the given one*/
+    bool hasSubExpression(Expression const& what) const;
     
     /** \brief Access individual elements in the list
 	
@@ -224,6 +245,9 @@ namespace gdaplanner {
 	
 	\param unIndex Index of the element to return */
     Expression& operator[](unsigned int unIndex) {
+      return m_vecSubExpressions[unIndex];
+    }
+    Expression const& operator[](unsigned int unIndex) const {
       return m_vecSubExpressions[unIndex];
     }
     
@@ -240,6 +264,9 @@ namespace gdaplanner {
       return m_vecSubExpressions;
     }
     
+    std::vector<Expression>const& subExpressions() const{
+      return m_vecSubExpressions;
+    }
     /** \brief Return a subset of sub-expressions from this list
 	
 	If this Expression instance is of type Expression::List,
@@ -343,7 +370,7 @@ namespace gdaplanner {
     }
     
     /** \brief Specifies how this class is printed to output streams */
-    virtual std::string toString() override {
+    virtual std::string toString() const override {
       std::stringstream sts;
       
       switch(m_tpType) {
@@ -395,7 +422,7 @@ namespace gdaplanner {
 	instance is such a wildcard.
 	
 	\return Boolean value denoting whether this instance is a wildcard */
-    bool isWildcard() {
+    bool isWildcard() const {
       return (m_tpType == String && *this == "?_");
     }
     
@@ -406,7 +433,7 @@ namespace gdaplanner {
 	element.
 	
 	\return Boolean value denoting whether this list contains a wildcard */
-    bool hasWildcard() {
+    bool hasWildcard() const {
       if(m_tpType == List) {
 	for(Expression exTest : m_vecSubExpressions) {
 	  if(exTest.isWildcard()) {
@@ -438,7 +465,7 @@ namespace gdaplanner {
 	a variable.
 	
 	\return Boolean value denoting whether this instance is a variable */
-    bool isVariable() {
+    bool isVariable() const {
       if(!this->isWildcard()) {
 	if(this->type() == String) {
 	  std::string strString = this->get<std::string>();
@@ -797,16 +824,16 @@ namespace gdaplanner {
     bool operator==(Expression::Type tpType) {
       return m_tpType == tpType;
     }
-    
-    bool operator==(const char* arrcValue) {
-      typename Value<std::string>::Ptr vlValue = std::dynamic_pointer_cast<Value<std::string>>(m_vbValue);
+
+    bool operator==(const char* arrcValue) const {
+      typename Value<std::string>::PtrConst vlValue = std::dynamic_pointer_cast<Value<std::string> const>(m_vbValue);
       
       return (vlValue && vlValue->get() == std::string(arrcValue));
     }
     
     template<typename T>
-      bool operator==(T& tValue) {
-      typename Value<T>::Ptr vlValue = std::dynamic_pointer_cast<Value<T>>(m_vbValue);
+      bool operator==(T const& tValue) const {
+      typename Value<T>::PtrConst vlValue = std::dynamic_pointer_cast<Value<T> const>(m_vbValue);
       
       return (vlValue && vlValue->get() == tValue);
     }
@@ -879,7 +906,7 @@ namespace gdaplanner {
       m_vecSubExpressions.insert(m_vecSubExpressions.begin(), exPush);
     }
     
-    std::string stringify() {
+    std::string stringify() const {
       std::stringstream sts;
       
       switch(m_tpType) {
@@ -917,7 +944,7 @@ namespace gdaplanner {
       return sts.str();
     }
     
-    size_t hash() {
+    size_t hash() const {
       return std::hash<std::string>()(this->stringify());
     }
     

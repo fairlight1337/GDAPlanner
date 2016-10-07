@@ -9,7 +9,7 @@ namespace gdaplanner {
     Problem::~Problem() {
     }
     
-    std::string Problem::toString() {
+    std::string Problem::toString() const {
       return "Empty base problem definition";
     }
   }

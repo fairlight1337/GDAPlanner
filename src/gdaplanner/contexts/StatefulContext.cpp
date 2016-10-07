@@ -36,6 +36,14 @@ namespace gdaplanner {
   
     World::Ptr StatefulContext::currentWorld() {
       if(m_dqWorlds.size() > 0) {
+    return m_dqWorlds.front();
+      }
+
+      return nullptr;
+    }
+
+    World::PtrConst StatefulContext::currentWorld() const {
+      if(m_dqWorlds.size() > 0) {
 	return m_dqWorlds.front();
       }
     
@@ -46,14 +54,14 @@ namespace gdaplanner {
       this->currentWorld()->assertFact(exFact);
     }
   
-    std::string StatefulContext::toString() {
+    std::string StatefulContext::toString() const {
       std::stringstream sts;
     
       sts << this->Context::toString();
     
       if(m_dqWorlds.size() > 0) {
 	sts << std::endl << "World:" << std::endl;
-	sts << *(this->currentWorld()) << std::endl;
+    sts << (*(this->currentWorld())).toString() << std::endl;
       }
     
       return sts.str();

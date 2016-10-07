@@ -28,6 +28,37 @@ namespace gdaplanner {
   
   Expression::~Expression() {
   }
+
+  void Expression::getVarNames(std::vector<std::string> & varNames) const
+  {
+      if(isVariable())
+      {
+          bool matched = false;
+          int maxK = varNames.size();
+          std::string thisName = toString();
+          for(int k = 0; (!matched) && (k < maxK); k++)
+              matched = (varNames[k] == thisName);
+          if(!matched)
+              varNames.push_back(thisName);
+      }
+      else
+      {
+          int maxK = subExpressions().size();
+          for(int k = 0; k < maxK; k++)
+              subExpressions()[k].getVarNames(varNames);
+      }
+  }
+
+  bool Expression::hasSubExpression(Expression const& what) const
+  {
+      if(this->toString() == what.toString())
+          return true;
+      int maxK = subExpressions().size();
+      bool retq = false;
+      for(int k = 0; (!retq) && (k < maxK); k++)
+          retq = subExpressions()[k].hasSubExpression(what);
+      return retq;
+  }
   
   Expression Expression::parseSingle(std::string strSource) {
     std::vector<Expression> vecParsed = Expression::parseString(strSource);

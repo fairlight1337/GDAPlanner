@@ -30,10 +30,11 @@ namespace gdaplanner {
       World::Ptr pushWorld();
       bool popWorld();
       World::Ptr currentWorld();
-    
+      World::PtrConst currentWorld() const;
+
       void fact(Expression exFact);
     
-      virtual std::string toString() override;
+      virtual std::string toString() const override;
     
       template<class ... Args>
 	static StatefulContext::Ptr create(Args ... args) {

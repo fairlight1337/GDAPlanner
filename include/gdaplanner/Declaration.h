@@ -24,7 +24,7 @@ namespace gdaplanner {
     Declaration(std::string strIdentifier, Expression expDeclare);
     ~Declaration();
     
-    virtual std::string toString() override;
+    virtual std::string toString() const override;
     
     template<class ... Args>
       static Declaration::Ptr create(Args ... args) {

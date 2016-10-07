@@ -3,7 +3,7 @@
 
 namespace gdaplanner {
   namespace contexts {
-    std::string PDDL::toString() {
+    std::string PDDL::toString() const {
       std::stringstream sts;
       
       sts << "Domain: " << m_strDomain << std::endl;

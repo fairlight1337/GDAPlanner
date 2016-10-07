@@ -11,7 +11,10 @@ namespace gdaplanner {
   Expression& Predicate::expression() {
     return m_exExpression;
   }
-  
+  Expression const& Predicate::expression() const{
+    return m_exExpression;
+  }
+
   std::string& Predicate::type(std::string strVariable) {
     return m_mapTypes[strVariable];
   }
@@ -58,12 +61,12 @@ namespace gdaplanner {
     return Predicate::variables(m_exExpression);
   }
   
-  std::string Predicate::toString() {
+  std::string Predicate::toString() const {
     std::stringstream sts;
     
-    sts << m_exExpression;
+    sts << m_exExpression.toString();
     
-    for(std::map<std::string, std::string>::iterator itType = m_mapTypes.begin();
+    for(std::map<std::string, std::string>::const_iterator itType = m_mapTypes.begin();
 	itType != m_mapTypes.end(); ++itType) {
       sts << ", " << itType->first << " = " << itType->second;
     }

@@ -8,10 +8,10 @@ namespace gdaplanner {
   Alias::~Alias() {
   }
   
-  std::string Alias::toString() {
+  std::string Alias::toString() const {
     std::stringstream sts;
     
-    sts << "alias = " << m_exAlias << ", aliased = [";
+    sts << "alias = " << m_exAlias.toString() << ", aliased = [";
     
     bool bFirst = true;
     for(Expression exAliased : m_vecAliased) {

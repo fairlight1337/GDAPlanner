@@ -44,7 +44,7 @@ namespace gdaplanner {
     
       std::vector<State::Ptr> matchingStates(Expression exMatch);    
     
-      virtual std::string toString() override;
+      virtual std::string toString() const override;
     
       template<class ... Args>
 	static Context::Ptr create(Args ... args) {

@@ -37,7 +37,7 @@ namespace gdaplanner {
       return vecMatches;
     }
   
-    std::string Context::toString() {
+    std::string Context::toString() const {
       std::stringstream sts;
     
       sts << "Context: " << m_strIdentifier << std::endl;

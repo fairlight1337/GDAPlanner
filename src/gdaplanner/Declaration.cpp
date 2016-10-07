@@ -8,10 +8,10 @@ namespace gdaplanner {
   Declaration::~Declaration() {
   }
   
-  std::string Declaration::toString() {
+  std::string Declaration::toString() const {
     std::stringstream sts;
     
-    sts << m_strIdentifier << " = " << m_expDeclare;
+    sts << m_strIdentifier << " = " << m_expDeclare.toString();
     
     return sts.str();
   }

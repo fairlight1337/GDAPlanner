@@ -23,7 +23,8 @@ namespace gdaplanner {
   public:
     /** Shared pointer to World class */
     typedef std::shared_ptr<World> Ptr;
-    
+    typedef std::shared_ptr<const World> PtrConst;
+
   private:
     std::list<Expression> m_lstFacts;
     
@@ -39,7 +40,7 @@ namespace gdaplanner {
     
     World::Ptr copy();
     
-    virtual std::string toString() override;
+    virtual std::string toString() const override;
     
     template<class ... Args>
       static World::Ptr create(Args ... args) {

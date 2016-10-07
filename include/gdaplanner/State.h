@@ -24,7 +24,7 @@ namespace gdaplanner {
     State(Expression exState, Expression exPreconditions);
     ~State();
     
-    virtual std::string toString() override;
+    virtual std::string toString() const override;
     
     Expression state();
     Expression preconditions();

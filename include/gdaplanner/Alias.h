@@ -29,7 +29,7 @@ namespace gdaplanner {
     Alias(Expression exAlias, std::vector<Expression> vecAliased);
     ~Alias();
     
-    virtual std::string toString() override;
+    virtual std::string toString() const override;
     
     template<class ... Args>
       static Alias::Ptr create(Args ... args) {

@@ -66,7 +66,7 @@ namespace gdaplanner {
       Expression metric();
       
       /** \brief Format stream output */
-      virtual std::string toString() override;
+      virtual std::string toString() const override;
       
       /** \brief Create a new instance of this class */
       template<class ... Args>

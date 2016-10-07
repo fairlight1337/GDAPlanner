@@ -72,7 +72,7 @@ namespace gdaplanner {
     return World::create(*this);
   }
   
-  std::string World::toString() {
+  std::string World::toString() const {
     std::stringstream sts;
     
     if(m_lstFacts.size() > 0) {

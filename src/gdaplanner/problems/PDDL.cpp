@@ -61,7 +61,7 @@ namespace gdaplanner {
       return m_exMetric;
     }
     
-    std::string PDDL::toString() {
+    std::string PDDL::toString() const {
       std::stringstream sts;
       
       sts << "Problem '" << m_strIdentifier << "'" << std::endl;
@@ -83,8 +83,8 @@ namespace gdaplanner {
 	}
       }
       
-      sts << " * Goal: " << m_exGoal << std::endl;
-      sts << " * Metric: " << m_exMetric << std::endl;
+      sts << " * Goal: " << m_exGoal.toString() << std::endl;
+      sts << " * Metric: " << m_exMetric.toString() << std::endl;
       
       return sts.str();
     }

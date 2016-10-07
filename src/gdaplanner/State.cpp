@@ -30,10 +30,10 @@ namespace gdaplanner {
     return nullptr;
   }
   
-  std::string State::toString() {
+  std::string State::toString() const {
     std::stringstream sts;
     
-    sts << "state = " << m_exState << ", precondition = " << m_exPreconditions;
+    sts << "state = " << m_exState.toString() << ", precondition = " << m_exPreconditions.toString();
     
     return sts.str();
   }

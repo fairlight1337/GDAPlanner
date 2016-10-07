@@ -51,7 +51,7 @@ namespace gdaplanner {
 	return true;
       }
       
-      virtual std::string toString() override {
+      virtual std::string toString() const override {
 	std::stringstream sts;
 	
 	for(std::pair<std::string, Expression> prBinding : m_mapBindings) {
@@ -72,12 +72,12 @@ namespace gdaplanner {
     Solution() : m_bValid(true) {}
     ~Solution() {}
     
-    virtual std::string toString() override {
+    virtual std::string toString() const override {
       std::stringstream sts;
       
       if(m_bValid) {
 	sts << "Valid Solution" << std::endl;
-	sts << m_bdgBindings;
+    sts << m_bdgBindings.toString();
       
 	sts << "( ";
 	for(int nIndex : m_vecIndices) {
