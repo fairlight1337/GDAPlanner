@@ -60,8 +60,12 @@ namespace gdaplanner {
     /** \brief Return the currently stored data */
     T get() const { return m_tValue; }
     /** \brief Equivalent to get() */
+    T operator*() const { return this->get(); }
+    /** \brief Return the currently stored data */
+    T get() { return m_tValue; }
+    /** \brief Equivalent to get() */
     T operator*() { return this->get(); }
-    
+
     template<class ... Args>
       static Value::Ptr create(Args ... args) {
       return std::make_shared<Value<T>>(std::forward<Args>(args)...);
@@ -211,7 +215,7 @@ namespace gdaplanner {
 	return its list length.
 	
 	\return Length of list stored in this Expression */
-    unsigned int size() {
+    unsigned int size() const {
       return m_vecSubExpressions.size();
     }
 
@@ -290,7 +294,7 @@ namespace gdaplanner {
 	\param unLength Desired length of the sub-et
 	
 	\return Expression of type Expression::List holding the subset of Expression instances from the original list */
-    std::vector<Expression> subSequence(unsigned int unStart, unsigned int unLength = 0) {
+    std::vector<Expression> subSequence(unsigned int unStart, unsigned int unLength = 0) const {
       std::vector<Expression> vecSequence;
       
       if(unLength == 0) {
@@ -336,7 +340,7 @@ namespace gdaplanner {
 	\param mapParametrization The set of variables to replace in the original Expression
 	
 	\return Expression instance obeying the above formulation */
-    Expression parametrize(std::map<std::string, Expression> mapParametrization) {
+    Expression parametrize(std::map<std::string, Expression> const& mapParametrization) const {
       Expression exParametrized = *this;
       
       switch(m_tpType) {
@@ -345,8 +349,9 @@ namespace gdaplanner {
 	
 	if(strUs.size() > 0) {
 	  if(strUs[0] == '?') {
-	    if(mapParametrization.find(strUs) != mapParametrization.end()) {
-	      exParametrized = mapParametrization[strUs];
+        std::map<std::string, Expression>::const_iterator it = mapParametrization.find(strUs);
+        if(it != mapParametrization.end()) {
+          exParametrized = it->second;
 	    }
 	  }
 	}
@@ -445,7 +450,7 @@ namespace gdaplanner {
       return false;
     }
     
-    bool contains(Expression exContained) {
+    bool contains(Expression exContained) const {
       if(m_tpType == List) {
 	for(Expression exCheck : m_vecSubExpressions) {
 	  if(exCheck == exContained) {
@@ -484,7 +489,7 @@ namespace gdaplanner {
     /** \brief Check if this instance is of type Expression::List
 	
 	\return Boolean value denoting whether this instance is of type Expression::List */
-    bool isListOf(Type tpType) {
+    bool isListOf(Type tpType) const {
       if(m_tpType == List) {
 	bool bAllOfType = true;
 	
@@ -501,10 +506,10 @@ namespace gdaplanner {
       return false;
     }
     
-    static bool appendToResolution(std::map<std::string, Expression>& mapResolutionA, std::map<std::string, Expression>& mapResolutionB) {
+    static bool appendToResolution(std::map<std::string, Expression>& mapResolutionA, std::map<std::string, Expression> const& mapResolutionB) {
       bool bSuccess = true;
       
-      for(std::map<std::string, Expression>::iterator itPair = mapResolutionB.begin(); itPair != mapResolutionB.end(); ++itPair) {
+      for(std::map<std::string, Expression>::const_iterator itPair = mapResolutionB.begin(); itPair != mapResolutionB.end(); ++itPair) {
 	bSuccess = false;
 	
 	if(mapResolutionA.find(itPair->first) != mapResolutionA.end()) {
@@ -524,7 +529,7 @@ namespace gdaplanner {
       return bSuccess;
     }
     
-    static bool resolveExpressionsIntoResolution(std::map<std::string, Expression>& mapResolution, Expression exA, Expression exB, bool bExact = false) {
+    static bool resolveExpressionsIntoResolution(std::map<std::string, Expression>& mapResolution, Expression const& exA, Expression const& exB, bool bExact = false) {
       bool bResolvedSub;
       std::map<std::string, Expression> mapResolutionSub = exA.resolve(exB, bResolvedSub, bExact);
       
@@ -537,7 +542,7 @@ namespace gdaplanner {
       return false;
     }
     
-    static std::map<std::string, Expression> resolveLists(Expression& exListA, Expression& exListB, bool& bResolved, bool bExact = false) {
+    static std::map<std::string, Expression> resolveLists(Expression const& exListA, Expression const& exListB, bool& bResolved, bool bExact = false) {
       std::map<std::string, Expression> mapResolution;
       bResolved = false;
       
@@ -684,7 +689,7 @@ namespace gdaplanner {
 	\param bResolved Boolean flag denoting whether the resolution was successful
 	
 	\return Map of variable to value bindings */
-    std::map<std::string, Expression> resolve(Expression& exOther, bool& bResolved, bool bExact = false) {
+    std::map<std::string, Expression> resolve(Expression const& exOther, bool& bResolved, bool bExact = false) const {
       std::map<std::string, Expression> mapResolution;
       bResolved = false;
       
@@ -798,7 +803,7 @@ namespace gdaplanner {
       return mapResolution;
     }
     
-    bool matchEx(Expression exMatch, std::map<std::string, Expression>& mapResolution) {
+    bool matchEx(Expression const& exMatch, std::map<std::string, Expression>& mapResolution) const {
       bool bResolved;
       mapResolution = this->resolve(exMatch, bResolved);
       
@@ -809,19 +814,19 @@ namespace gdaplanner {
       return bResolved;
     }
     
-    bool match(std::string strMatchString, std::map<std::string, Expression>& mapResolution) {
+    bool match(std::string const& strMatchString, std::map<std::string, Expression>& mapResolution) const {
       Expression exMatch = Expression::parseSingle(strMatchString);
       return this->matchEx(exMatch, mapResolution);
     }
     
-    bool operator==(Expression& exOther) {
+    bool operator==(Expression const& exOther) const {
       bool bResolved;
       std::map<std::string, Expression> mapResult = this->resolve(exOther, bResolved);
       
       return bResolved;
     }
     
-    bool operator==(Expression::Type tpType) {
+    bool operator==(Expression::Type tpType) const {
       return m_tpType == tpType;
     }
 
@@ -838,7 +843,7 @@ namespace gdaplanner {
       return (vlValue && vlValue->get() == tValue);
     }
     
-    std::string predicateName() {
+    std::string predicateName() const {
       if(m_tpType == List && m_vecSubExpressions.size() > 0 && m_vecSubExpressions[0] == String) {
 	return m_vecSubExpressions[0].get<std::string>();
       }
@@ -846,7 +851,7 @@ namespace gdaplanner {
       return "";
     }
     
-    void add(Expression exAdd) {
+    void add(Expression const& exAdd) {
       if(m_tpType != List) {
 	m_vecSubExpressions.push_back(*this);
 	m_tpType = List;
@@ -883,7 +888,7 @@ namespace gdaplanner {
       throw std::exception();
     }
     
-    Expression negate() {
+    Expression negate() const {
       if(m_tpType == List) {
 	if(this->size() == 2 && m_vecSubExpressions[0] == "not") {
 	  return m_vecSubExpressions[1];
