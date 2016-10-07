@@ -21,8 +21,6 @@ namespace gdaplanner {
     solSolution.setValid(false);
     
     if(exQuery.type() == Expression::List) {
-      std::cout << std::endl << " ==== Query: \033[1;33m" << exQuery << "\033[0m ====" << std::endl;
-      
       if(!wdWorld) {
 	wdWorld = m_wdWorld;
       }
