@@ -12,26 +12,25 @@ namespace gdaplanner {
     return m_wdWorld;
   }
   
-  Prolog::Solution::Ptr Prolog::query(std::string strExpression, Solution::Ptr solPrior, World::Ptr wdWorld) {
+  Solution Prolog::query(std::string strExpression, Solution solPrior, World::Ptr wdWorld) {
     return this->queryEx(Expression::parseSingle(strExpression), solPrior, wdWorld);
   }
   
-  Prolog::Solution::Ptr Prolog::queryEx(Expression exQuery, Solution::Ptr solPrior, World::Ptr wdWorld) {
-    Solution::Ptr solSolution = nullptr;
+  Solution Prolog::queryEx(Expression exQuery, Solution solPrior, World::Ptr wdWorld) {
+    Solution solSolution;
+    solSolution.setValid(false);
     
     if(exQuery.type() == Expression::List) {
-      std::cout << "Query = " << exQuery << std::endl;
+      std::cout << std::endl << " ==== Query: \033[1;33m" << exQuery << "\033[0m ====" << std::endl;
       
       if(!wdWorld) {
 	wdWorld = m_wdWorld;
       }
       
-      if(wdWorld) {
-	solSolution = Solution::create();
-	
-	if(!this->populateSolution(exQuery, solSolution, solPrior)) {
-	  solSolution = nullptr;
-	}
+      if(wdWorld && solPrior.valid()) {
+	try {
+	  solSolution = this->unify(exQuery, solPrior);
+	} catch(SolutionsExhausted seException) {}
       } else {
 	throw std::exception();
       }
@@ -39,193 +38,66 @@ namespace gdaplanner {
     
     return solSolution;
   }
-  
-  bool Prolog::evaluateBuiltinFunction(Expression exQuery, Solution::Ptr solSolution, Solution::Ptr solPrior) {
-    bool bReturnvalue = false;
-    
-    // Parametrize query beforehand
-    exQuery = exQuery.parametrize(solSolution->bindings());
-    
-    if(exQuery.type() == Expression::List && exQuery.size() > 0) {
-      std::string strPredicate = exQuery[0].get<std::string>();
-      
-      if(strPredicate == "member") {
-	if(exQuery.size() == 3) {
-	  if(exQuery[1].isVariable() && exQuery[2].type() == Expression::List && exQuery[2].size() > 0) {
-	    // Case 1: (member ?a (1 2 3))
-	    if(!solPrior) {
-	      (*solSolution)[exQuery[1].get<std::string>()] = exQuery[2][0];
-	      solSolution->setIndex(0, 0);
-	      
-	      bReturnvalue = true;
-	    } else {
-	      unsigned int unIndex = solPrior->index(0);
-	      
-	      if(unIndex < exQuery[2].size() - 1) {
-		solSolution->setIndex(0, unIndex + 1);
-		(*solSolution)[exQuery[1].get<std::string>()] = exQuery[2][unIndex + 1];
-		
-		bReturnvalue = true;
-	      }
-	    }
-	  } else if(!(exQuery[1].isVariable() || exQuery[1].isWildcard()) && exQuery[2].type() == Expression::List) {
-	    // Case 2: (member 1 (1 2 3))
-	    Expression exex = exQuery[2];
-	    std::vector<Expression> vecSub = exQuery[2].subExpressions();
-	    
-	    for(Expression exMember : vecSub) {
-	      Expression exExpression = exQuery[1];
-	      
-	      if(exMember == exExpression) {
-		if(!solPrior) {
-		  solSolution->setIndex(0, 0);
-		  bReturnvalue = true;
-		  
-		  break;
-		}
-	      }
-	    }
-	  }
-	}
-      } else if(strPredicate == "and") {
-	if(exQuery.size() > 1) {
-	  std::vector<Expression> vecSub = exQuery.subSequence(1);
-	  
-	  bReturnvalue = true;
-	  unsigned int unIndex = 0;
-	  for(Expression exAnded : vecSub) {
-	    Solution::Ptr solSub = solSolution->pushSubSolution();
-	    
-	    if(!populateSolution(exAnded, solSub, (solPrior ? solPrior->subSolution(unIndex) : solPrior))) {
-	      bReturnvalue = false;
-	      break;
-	    }
-	    
-	    unIndex++;
-	  }
-	}
-      } else if(strPredicate == "=") {
-	if(exQuery.size() == 3) {
-	  if(!solPrior) {
-	    if(exQuery[1].isVariable()) {
-	      if(!exQuery[2].isVariable()) {
-		(*solSolution)[exQuery[1].get<std::string>()] = exQuery[2];
-		solSolution->setIndex(0, 0);
-		
-		bReturnvalue = true;
-	      }
-	    } else {
-	      if(exQuery[2].isVariable()) {
-		(*solSolution)[exQuery[2].get<std::string>()] = exQuery[1];
-		solSolution->setIndex(0, 0);
-		
-		bReturnvalue = true;
-	      } else {
-		Expression exA = exQuery[1];
-		Expression exB = exQuery[2];
-		
-		if(exA == exB) {
-		  solSolution->setIndex(0, 0);
-		  bReturnvalue = true;
-		}
-	      }
-	    }
-	  }
-	}
-      }
-    }
-    
-    return bReturnvalue;
-  }
-  
-  bool Prolog::populateSolution(Expression exQuery, Solution::Ptr solSolution, Solution::Ptr solPrior) {
-    bool bReturnvalue = false;
-    
-    if(this->evaluateBuiltinFunction(exQuery, solSolution, solPrior)) {
-      bReturnvalue = true;
-    } else {
-      switch(exQuery.type()) {
-      case Expression::List: {
-      } break;
-	
-	// ...
-      }
-    }
-    
-    return bReturnvalue;
-  }
-  
-  /* Solution class */
-  Prolog::Solution::Solution() {
-  }
-  
-  Prolog::Solution::~Solution() {
-  }
-  
-  bool Prolog::Solution::isBound(std::string strVariable) {
-    return m_mapBindings.find(strVariable) != m_mapBindings.end();
-  }
-  
-  bool Prolog::Solution::isBoundEx(Expression exVariable) {
-    if(exVariable.isVariable()) {
-      return this->isBound(exVariable.get<std::string>());
-    }
-    
-    return false;
-  }
-  
-  std::vector<std::string> Prolog::Solution::boundVariables() {
-    std::vector<std::string> vecVariables;
-    
-    for(std::pair<std::string, Expression> prBound : m_mapBindings) {
-      vecVariables.push_back(prBound.first);
-    }
-    
-    return vecVariables;
-  }
-  
-  std::map<std::string, Expression> Prolog::Solution::bindings(bool bRecursive) {
-    if(bRecursive) {
-      std::map<std::string, Expression> mapBindings = m_mapBindings;
-      
-      for(Solution::Ptr solSub : m_vecSubSolutions) {
-	std::map<std::string, Expression> mapSubBindings = solSub->bindings(true);
-	
-	for(std::pair<std::string, Expression> prBinding : mapSubBindings) {
-	  if(mapBindings.find(prBinding.first) == mapBindings.end()) {
-	    mapBindings[prBinding.first] = prBinding.second;
-	  }
-	}
-      }
-      
-      return mapBindings;
-    } else {
-      return m_mapBindings;
-    }
-  }
-  
-  Expression Prolog::Solution::value(std::string strVariable) {
-    if(this->isBound(strVariable)) {
-      return m_mapBindings[strVariable];
-    }
-    
-    return Expression();
-  }
 
-  std::string Prolog::Solution::toString() {
-    std::stringstream sts;
+  Solution Prolog::unify(Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) {
+    Solution solResult;
+    solResult.setValid(false);
     
-    std::map<std::string, Expression> mapBindings = this->bindings();
+    Expression exQueryBound = exQuery.parametrize(bdgBindings.bindings());
     
-    if(mapBindings.size() > 0) {
-      sts << "Bindings:" << std::endl;
-      for(std::pair<std::string, Expression> prBound : mapBindings) {
-	sts << " * " << prBound.first << " = " << prBound.second << std::endl;
+    if(exQueryBound.predicateName() == "and") {
+      std::deque<Solution> dqSolutionStack;
+      
+      while(dqSolutionStack.size() < exQueryBound.size() - 1) {
+	std::cout << exQueryBound << std::endl;
+	unsigned int unIndex = dqSolutionStack.size();
+	
+	Expression exOperand = exQueryBound[unIndex + 1]; // Leap jump the predicate name
+	std::cout << exOperand << std::endl;
+	
+	Solution solOperand = this->unify(exOperand,
+					  solPrior.subSolution(unIndex),
+					  (unIndex > 0 ? dqSolutionStack.back().bindings().bindings() : bdgBindings));
+	
+	
       }
     } else {
-      sts << "No bindings";
+      std::map<std::string, Expression> mapResolution;
+      
+      if(exQueryBound.match("(= ?a ?b)", mapResolution)) {
+	Expression exA = mapResolution["?a"];
+	Expression exB = mapResolution["?b"];
+	
+	if(solPrior.index() == -1) {
+	  std::map<std::string, Expression> mapR;
+	  if(exA.matchEx(exB, mapR)) {
+	    solResult = Solution();
+	    
+	    solResult.bindings() = Solution::Bindings(mapR);
+	    solResult.index() = 0;
+	  }
+	}
+      } else if(exQueryBound.match("(member ?member ?list)", mapResolution)) {
+	Expression exMember = mapResolution["?member"];
+	Expression exList = mapResolution["?list"];
+	
+	if(exList == Expression::List) {
+	  unsigned int unIndex = solPrior.index();
+	  
+	  if(unIndex + 1 < exList.size()) {
+	    unIndex++;
+	    std::map<std::string, Expression> mapR;
+	    
+	    if(exMember.matchEx(exList[unIndex], mapR)) {
+	      solResult = Solution();
+	      solResult.bindings() = Solution::Bindings(mapR);
+	      solResult.index() = unIndex;
+	    }
+	  }
+	}
+      }
     }
     
-    return sts.str();
+    return solResult;
   }
 }

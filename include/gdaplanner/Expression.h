@@ -223,7 +223,7 @@ namespace gdaplanner {
 	value is undefined.
 	
 	\param unIndex Index of the element to return */
-    Expression operator[](unsigned int unIndex) {
+    Expression& operator[](unsigned int unIndex) {
       return m_vecSubExpressions[unIndex];
     }
     
@@ -310,6 +310,8 @@ namespace gdaplanner {
 	
 	\return Expression instance obeying the above formulation */
     Expression parametrize(std::map<std::string, Expression> mapParametrization) {
+      Expression exParametrized = *this;
+      
       switch(m_tpType) {
       case String: {
 	std::string strUs = this->get<std::string>();
@@ -317,7 +319,7 @@ namespace gdaplanner {
 	if(strUs.size() > 0) {
 	  if(strUs[0] == '?') {
 	    if(mapParametrization.find(strUs) != mapParametrization.end()) {
-	      return mapParametrization[strUs];
+	      exParametrized = mapParametrization[strUs];
 	    }
 	  }
 	}
@@ -330,14 +332,14 @@ namespace gdaplanner {
 	  vecSubNew.push_back(exSub.parametrize(mapParametrization));
 	}
 	
-	return Expression(vecSubNew);
+	exParametrized = Expression(vecSubNew);
       } break;
 	
       default: {
       } break;
       }
       
-      return *this;
+      return exParametrized;
     }
     
     /** \brief Specifies how this class is printed to output streams */
@@ -408,6 +410,18 @@ namespace gdaplanner {
       if(m_tpType == List) {
 	for(Expression exTest : m_vecSubExpressions) {
 	  if(exTest.isWildcard()) {
+	    return true;
+	  }
+	}
+      }
+      
+      return false;
+    }
+    
+    bool contains(Expression exContained) {
+      if(m_tpType == List) {
+	for(Expression exCheck : m_vecSubExpressions) {
+	  if(exCheck == exContained) {
 	    return true;
 	  }
 	}
@@ -757,6 +771,22 @@ namespace gdaplanner {
       return mapResolution;
     }
     
+    bool matchEx(Expression exMatch, std::map<std::string, Expression>& mapResolution) {
+      bool bResolved;
+      mapResolution = this->resolve(exMatch, bResolved);
+      
+      if(!bResolved) {
+	mapResolution = {};
+      }
+      
+      return bResolved;
+    }
+    
+    bool match(std::string strMatchString, std::map<std::string, Expression>& mapResolution) {
+      Expression exMatch = Expression::parseSingle(strMatchString);
+      return this->matchEx(exMatch, mapResolution);
+    }
+    
     bool operator==(Expression& exOther) {
       bool bResolved;
       std::map<std::string, Expression> mapResult = this->resolve(exOther, bResolved);
@@ -781,6 +811,14 @@ namespace gdaplanner {
       return (vlValue && vlValue->get() == tValue);
     }
     
+    std::string predicateName() {
+      if(m_tpType == List && m_vecSubExpressions.size() > 0 && m_vecSubExpressions[0] == String) {
+	return m_vecSubExpressions[0].get<std::string>();
+      }
+      
+      return "";
+    }
+    
     void add(Expression exAdd) {
       if(m_tpType != List) {
 	m_vecSubExpressions.push_back(*this);
@@ -788,6 +826,21 @@ namespace gdaplanner {
       }
       
       m_vecSubExpressions.push_back(exAdd);
+    }
+    
+    bool remove(unsigned int unIndex) {
+      if(m_tpType == List) {
+	if(m_vecSubExpressions.size() > unIndex) {
+	  std::vector<Expression>::iterator itSub = m_vecSubExpressions.begin();
+	  std::advance(itSub, unIndex);
+	  
+	  m_vecSubExpressions.erase(itSub);
+	  
+	  return true;
+	}
+      }
+      
+      return false;
     }
     
     Expression popFront() {

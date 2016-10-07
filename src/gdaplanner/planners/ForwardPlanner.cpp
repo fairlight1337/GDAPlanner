@@ -18,19 +18,31 @@ namespace gdaplanner {
       World::Ptr wdWorld = World::create();
       Prolog::Ptr plProlog = Prolog::create(wdWorld);
       
-      Prolog::Solution::Ptr solSolution = nullptr;
+      Solution solSolution;
       
       while(true) {
-	solSolution = plProlog->query("(and \
-                                            (= ?b (1 2 3)) \
-                                            (member ?a ?b))", solSolution);
+	// solSolution = plProlog->query("(and (= ?a ((1 2) (3 4))) \
+        //                                     (member ?b ?a) \
+        //                                     (member ?c ?b))"
+	// 			      , solSolution);
+	//solSolution = plProlog->query("(and (= ?a ((1 2) (3 4)))	\
+	//                                  (member ?b ?a))"
+	//			      , solSolution);
+	//solSolution = plProlog->query("(= (?a (?b ?c 4 ?d)) ((1 a) (2 3 4 5)))", solSolution);
+	//solSolution = plProlog->query("(member ?a ((1 2) (3 4) (a b)))", solSolution);
+	solSolution = plProlog->query("(member (?a ?b) ((1 2) (3 4) (a b)))", solSolution);
 	
-	if(solSolution) {
-	  std::cout << "--" << std::endl;
-	  std::cout << *solSolution << std::endl;
+	if(solSolution.valid()) {
+	  std::cout << "\033[1;31m" << std::endl;
+	  std::cout << "------------" << std::endl;
+	  std::cout << solSolution;
+	  std::cout << "------------" << std::endl;
+	  std::cout << "\033[0m";
 	} else {
 	  break;
 	}
+	
+	//break;
       }
     }
     
