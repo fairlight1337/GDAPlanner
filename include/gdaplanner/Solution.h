@@ -111,11 +111,23 @@ namespace gdaplanner {
       return m_vecIndices[unIndex];
     }
     
+    void resetIndices(int nValue = -1) {
+      std::fill(m_vecIndices.begin(), m_vecIndices.end(), nValue);
+      
+      if(m_vecIndices.size() > 0) {
+	//std::cout << m_vecIndices[0] << std::endl;
+      }
+      for(std::vector<Solution>::iterator itSub = m_vecSubSolutions.begin();
+	  itSub != m_vecSubSolutions.end(); ++itSub) {
+	itSub->resetIndices(nValue);
+      }
+    }
+    
     void addSubSolution(Solution solSubAdd) {
       m_vecSubSolutions.push_back(solSubAdd);
     }
     
-    std::vector<Solution> subSolutions() {
+    std::vector<Solution>& subSolutions() {
       return m_vecSubSolutions;
     }
     
@@ -139,7 +151,7 @@ namespace gdaplanner {
       if(m_vecSubSolutions.size() == 0) {
 	return m_bdgBindings.bindings();
       } else {
-	return m_vecSubSolutions.back().bindings().bindings();
+	return m_vecSubSolutions.back().finalBindings();//.bindings();
       }
     }
     
