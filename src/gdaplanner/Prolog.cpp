@@ -162,6 +162,133 @@ namespace gdaplanner {
 	    }
 	  }
 	}
+      } else if(exQueryBound.match("(1- ?value ?newvalue)", mapResolution)) {
+          Expression exValue = mapResolution["?value"];
+          Expression exNewValue = mapResolution["?newvalue"];
+
+          int intValue;
+          int intNewValue;
+          bool valueIsInt = true;
+          bool newValueIsInt = true;
+
+          try
+          {
+              intValue = std::stol(exValue.toString());
+          }
+          catch(const std::invalid_argument &e)
+          {
+              valueIsInt = false;
+          }
+          try
+          {
+              intNewValue = std::stol(exNewValue.toString());
+          }
+          catch(const std::invalid_argument &e)
+          {
+              newValueIsInt = false;
+          }
+
+          int nIndex = solPrior.index();
+
+          std::map<std::string, Expression> mapR;
+
+          solResult.index() = 0;
+
+          if(0 <= nIndex)
+              solResult.setValid(false);
+          else if(valueIsInt && (intValue != 0))
+          {
+              mapR.insert(std::pair<std::string, Expression>(exNewValue.toString(), Expression(intValue - 1)));
+              if(exNewValue.isVariable())
+              {
+                  solResult.setValid(true);
+                  solResult.bindings() = Solution::Bindings(mapR);
+              }
+              else if(exNewValue.isWildcard())
+                  solResult.setValid(true);
+              else if(exNewValue == Expression::Integer)
+                  solResult.setValid(exNewValue == Expression(intValue - 1));
+          }
+          else if((newValueIsInt))
+          {
+              mapR.insert(std::pair<std::string, Expression>(exValue.toString(), Expression(intNewValue + 1)));
+              if(exValue.isWildcard())
+                  solResult.setValid(true);
+              else if(exValue.isVariable())
+              {
+                  solResult.bindings() = mapR;
+                  solResult.setValid(true);
+              }
+          }
+      } else if(exQueryBound.match("(append ?object ?list ?newlist)", mapResolution)) {
+          Expression exObject = mapResolution["?object"];
+          Expression exList = mapResolution["?list"];
+          Expression exNewList = mapResolution["?newlist"];
+          int nIndex = solPrior.index();
+
+          solResult.index() = 0;
+          if(0 <= nIndex)
+              solResult.setValid(false);
+          else if((!exObject.isVariable()) && (!exObject.isWildcard()))
+          {
+              if((exList == Expression::List) && (exNewList == Expression::List))
+              {
+                  int maxK = exList.size();
+                  int maxJ = exNewList.size();
+                  bool allEqual = ((maxK + 1) == maxJ);
+                  for(int k = 0; allEqual && (k < maxK); k++)
+                      allEqual = (exList[k] == exNewList[k]);
+                  allEqual = (allEqual && (exNewList[maxJ - 1] == exObject));
+                  solResult.setValid(allEqual);
+              }
+              else if(exList == Expression::List)
+              {
+                  if(exNewList.isVariable())
+                  {
+                      solResult.setValid(true);
+                      std::map<std::string, Expression> mapR;
+                      Expression exAppended = exList;
+                      exAppended.add(exObject);
+                      mapR.insert(std::pair<std::string, Expression>(exNewList.toString(), exAppended));
+                      solResult.bindings() = mapR;
+                  }
+                  else if(exNewList.isWildcard())
+                      solResult.setValid(true);
+              }
+              else if(exNewList == Expression::List)
+              {
+                  if(exList.isVariable())
+                  {
+                      int maxK = exNewList.size();
+                      bool popped = (exObject == exNewList[maxK - 1]);
+                      solResult.setValid(popped);
+                      std::map<std::string, Expression> mapR;
+                      Expression exPopped;
+                      for(int k = 0; popped && (k < (maxK - 1)); k++)
+                          exPopped.add(exNewList[k]);
+                      mapR.insert(std::pair<std::string, Expression>(exList.toString(), exPopped));
+                      if(popped)
+                          solResult.bindings() = mapR;
+                  }
+                  else if(exList.isWildcard())
+                      solResult.setValid(true);
+              }
+          }
+          else if((exList == Expression::List) && (exNewList == Expression::List))
+          {
+              int maxK = exList.size();
+              int maxJ = exNewList.size();
+              std::map<std::string, Expression> mapR;
+              bool allEqual = ((maxK + 1) == maxJ);
+              for(int k = 0; allEqual && (k < maxK); k++)
+                  allEqual = (exList[k] == exNewList[k]);
+              if(maxJ)
+                  mapR.insert(std::pair<std::string, Expression>(exObject.toString(), exNewList[maxJ - 1]));
+              solResult.setValid(allEqual);
+              if(allEqual && exObject.isVariable())
+                  solResult.bindings() = mapR;
+          }
+
       }
     }
     
