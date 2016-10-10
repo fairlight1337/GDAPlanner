@@ -57,16 +57,12 @@ namespace gdaplanner {
 	}
       }
       
-      Solution solFlyingPrior;
-      solFlyingPrior.setValid(false);
-      
       while(dqSolutionStack.size() < exQueryBound.size()) {
 	unsigned int unIndex = dqSolutionStack.size();
 	Expression exOperand = exQueryBound[unIndex];
 	
-	Solution solThisPrior = solPrior.subSolution(unIndex);
 	Solution solOperand = this->unify(exOperand,
-					  solThisPrior,
+					  solPrior.subSolution(unIndex),
 					  (unIndex > 0 ? dqSolutionStack.back().finalBindings() : bdgBindings));
 	
 	solPrior.subSolution(unIndex) = solOperand;
@@ -129,16 +125,18 @@ namespace gdaplanner {
     } else {
       std::map<std::string, Expression> mapResolution;
       
-      if(exQueryBound.match("(= ?a ?b)", mapResolution)) {
+      Expression exQuerySanitized = exQueryBound.sanitize("_");
+      if(exQuerySanitized.match("(= ?a ?b)", mapResolution)) {
 	Expression exA = mapResolution["?a"];
 	Expression exB = mapResolution["?b"];
 	
 	if(solPrior.index() == -1) {
 	  std::map<std::string, Expression> mapR;
+	  
 	  if(exA.matchEx(exB, mapR)) {
 	    solResult = Solution();
 	    
-	    solResult.bindings() = Solution::Bindings(mapR);
+	    solResult.bindings() = Solution::Bindings(mapR).desanitize("_");
 	    solResult.index() = 0;
 	  }
 	}
