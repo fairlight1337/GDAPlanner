@@ -167,6 +167,22 @@ namespace gdaplanner {
 	    }
 	  }
 	}
+      } else if(exQueryBound.match("(not ?a)", mapResolution)) {
+	if(solPrior.index() == -1) {
+	  Expression exA = mapResolution["?a"];
+	  Solution solTemp;
+	  
+	  try {
+	    solTemp = this->unify(exA, solPrior, bdgBindings);
+	  } catch(SolutionsExhausted seException) {
+	    solTemp.setValid(false);
+	  }
+	  
+	  if(!solTemp.valid()) {
+	    solResult = Solution();
+	    solResult.index() = 0;
+	  }
+	}
       }
     }
     
