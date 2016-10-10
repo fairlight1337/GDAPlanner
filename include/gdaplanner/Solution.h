@@ -117,6 +117,10 @@ namespace gdaplanner {
       return m_bdgBindings;
     }
     
+    unsigned int indexCount() {
+      return m_vecIndices.size();
+    }
+    
     int& index(unsigned int unIndex = 0) {
       while(unIndex + 1 > m_vecIndices.size()) {
 	m_vecIndices.push_back(-1);

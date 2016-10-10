@@ -7,7 +7,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 set(${PROJECT_NAME}_VERSION_MAJOR_0)
 set(${PROJECT_NAME}_VERSION_MINOR_1)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 include_directories(
   include)
@@ -53,4 +53,6 @@ AddTests(basic_prolog_operations_and)
 AddTests(basic_prolog_operations_or)
 AddTests(basic_prolog_operations_equal)
 AddTests(basic_prolog_operations_member)
+AddTests(basic_prolog_operations_not)
+AddTests(basic_prolog_operations_bound)
 AddTests(compound_prolog_operations)
