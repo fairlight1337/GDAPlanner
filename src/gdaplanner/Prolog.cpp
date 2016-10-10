@@ -98,13 +98,6 @@ namespace gdaplanner {
       Solution solSolution = solPrior;
       solSolution.index()++;
       
-      /*while(solSolution.subSolutions().size() < exQueryBound.size()) {
-	Solution solNew;
-	solNew.index() = -1;
-	
-	solSolution.addSubSolution(solNew);
-	}*/
-      
       bool bOneFound = false;
       unsigned int unI;
       
@@ -172,6 +165,31 @@ namespace gdaplanner {
 	      
 	      break;
 	    }
+	  }
+	}
+      } else if(exQueryBound.match("(not ?a)", mapResolution)) {
+	if(solPrior.index() == -1) {
+	  Expression exA = mapResolution["?a"];
+	  Solution solTemp;
+	  
+	  try {
+	    solTemp = this->unify(exA, solPrior, bdgBindings);
+	  } catch(SolutionsExhausted seException) {
+	    solTemp.setValid(false);
+	  }
+	  
+	  if(!solTemp.valid()) {
+	    solResult = Solution();
+	    solResult.index() = 0;
+	  }
+	}
+      } else if(exQueryBound.match("(bound ?a)", mapResolution)) {
+	if(solPrior.index() == -1) {
+	  Expression exA = mapResolution["?a"];
+	  
+	  if(!(exA.isVariable() || exA.isWildcard())) {
+	    solResult = Solution();
+	    solResult.index() = 0;
 	  }
 	}
       }
