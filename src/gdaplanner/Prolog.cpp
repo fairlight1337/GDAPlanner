@@ -183,6 +183,15 @@ namespace gdaplanner {
 	    solResult.index() = 0;
 	  }
 	}
+      } else if(exQueryBound.match("(bound ?a)", mapResolution)) {
+	if(solPrior.index() == -1) {
+	  Expression exA = mapResolution["?a"];
+	  
+	  if(!(exA.isVariable() || exA.isWildcard())) {
+	    solResult = Solution();
+	    solResult.index() = 0;
+	  }
+	}
       }
     }
     
