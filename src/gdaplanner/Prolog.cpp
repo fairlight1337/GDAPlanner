@@ -98,13 +98,6 @@ namespace gdaplanner {
       Solution solSolution = solPrior;
       solSolution.index()++;
       
-      /*while(solSolution.subSolutions().size() < exQueryBound.size()) {
-	Solution solNew;
-	solNew.index() = -1;
-	
-	solSolution.addSubSolution(solNew);
-	}*/
-      
       bool bOneFound = false;
       unsigned int unI;
       
