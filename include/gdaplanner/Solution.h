@@ -51,6 +51,20 @@ namespace gdaplanner {
 	return true;
       }
       
+      Bindings desanitize(std::string strSuffix) {
+	Bindings bdgDesanitized;
+	
+	for(std::pair<std::string, Expression> prBinding : m_mapBindings) {
+	  if(prBinding.first.length() >= strSuffix.length()) {
+	    if(prBinding.first.compare(prBinding.first.length() - strSuffix.length(), strSuffix.length(), strSuffix) == 0) {
+	      bdgDesanitized[prBinding.first.substr(0, prBinding.first.length() - strSuffix.length())] = prBinding.second;
+	    }
+	  }
+	}
+	
+	return bdgDesanitized;
+      }
+      
       virtual std::string toString() const override {
 	std::stringstream sts;
 	
