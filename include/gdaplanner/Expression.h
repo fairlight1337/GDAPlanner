@@ -962,6 +962,22 @@ namespace gdaplanner {
       static Expression::Ptr create(Args ... args) {
       return std::make_shared<Expression>(std::forward<Args>(args)...);
     }
+    
+    Expression sanitize(std::string strSuffix) {
+      if(this->isVariable() || this->isWildcard()) {
+	return Expression(this->get<std::string>() + strSuffix);
+      } else if(m_vecSubExpressions.size() > 0) {
+	std::vector<Expression> vecSanitized;
+	
+	for(Expression exSub : m_vecSubExpressions) {
+	  vecSanitized.push_back(exSub.sanitize(strSuffix));
+	}
+	
+	return Expression(vecSanitized);
+      }
+      
+      return *this;
+    }
   };
 }
 
