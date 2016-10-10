@@ -103,7 +103,10 @@ int main(int argc, char** argv) {
   			   {"?c", Expression::parseSingle("3")}},
   			  {{"?a", Expression::parseSingle("((1 2) (3 4))")},
   			   {"?b", Expression::parseSingle("(3 4)")},
-  			   {"?c", Expression::parseSingle("4")}}}}};
+  			   {"?c", Expression::parseSingle("4")}}}},
+			{"(and (member ?a (1 2 3)) (or (= ?a 1) (= ?a 2)))",
+			 {{{"?a", Expression::parseSingle("1")}},
+			  {{"?a", Expression::parseSingle("2")}}}}};
   
   if(checkQueries(colData)) {
     nReturnvalue = EXIT_SUCCESS;
