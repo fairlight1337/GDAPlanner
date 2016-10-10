@@ -7,7 +7,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 set(${PROJECT_NAME}_VERSION_MAJOR_0)
 set(${PROJECT_NAME}_VERSION_MINOR_1)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
 
 include_directories(
   include)
@@ -18,11 +18,17 @@ link_directories(
 add_executable(${PROJECT_NAME}-bin
   src/main.cpp)
 
+add_executable(prolog_tool
+  src/prolog_tool.cpp)
+
 file(GLOB_RECURSE LIB_SOURCE "src/gdaplanner/*.cpp")
 add_library(${PROJECT_NAME}
  ${LIB_SOURCE})
 
 target_link_libraries(${PROJECT_NAME}-bin
+  ${PROJECT_NAME})
+
+target_link_libraries(prolog_tool
   ${PROJECT_NAME})
 
 
@@ -43,4 +49,8 @@ AddTests(expression_equality)
 AddTests(expression_negate)
 AddTests(parse_pddl)
 AddTests(world_assertions)
-AddTests(basic_prolog_operations)
+AddTests(basic_prolog_operations_and)
+AddTests(basic_prolog_operations_or)
+AddTests(basic_prolog_operations_equal)
+AddTests(basic_prolog_operations_member)
+AddTests(compound_prolog_operations)

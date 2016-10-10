@@ -81,49 +81,14 @@ bool checkQueries(Collection colData) {
 int main(int argc, char** argv) {
   int nReturnvalue = EXIT_FAILURE;
   
-  Collection colData = {{"(= ?a 5)",
-			 {{{"?a", Expression::parseSingle("5")}}}},
-			{"(member (?a ?b) ((1 a) (2 b) (3 c)))",
+  Collection colData = {{"(and (or (= (?a ?b) (1 b)) (= (?a ?b) (a b))) \
+			       (member ?a (1 2 3))) \
+                               (or (member ?b (1 2 3)) \
+                                   (member ?b (a b c))) \
+                               (member (2 ?a ?b q) ((2 1 b q))) \
+                               (= (1 2 ?a b ?b) (1 2 1 b b)))",
 			 {{{"?a", Expression::parseSingle("1")},
-			   {"?b", Expression::parseSingle("a")}},
-			  {{"?a", Expression::parseSingle("2")},
-			   {"?b", Expression::parseSingle("b")}},
-			  {{"?a", Expression::parseSingle("3")},
-			   {"?b", Expression::parseSingle("c")}}}},
-			{"(and (= ?a ((1 2) (3 4))) (member ?b ?a))",
-			 {{{"?a", Expression::parseSingle("((1 2) (3 4))")},
-			   {"?b", Expression::parseSingle("(1 2)")}},
-			  {{"?a", Expression::parseSingle("((1 2) (3 4))")},
-			   {"?b", Expression::parseSingle("(3 4)")}}}},
-			{"(and (= ?a ((1 2) (3 4))) (member ?b ?a) (member ?c ?b))",
-			 {{{"?a", Expression::parseSingle("((1 2) (3 4))")},
-			   {"?b", Expression::parseSingle("(1 2)")},
-			   {"?c", Expression::parseSingle("1")}},
-			  {{"?a", Expression::parseSingle("((1 2) (3 4))")},
-			   {"?b", Expression::parseSingle("(1 2)")},
-			   {"?c", Expression::parseSingle("2")}},
-			  {{"?a", Expression::parseSingle("((1 2) (3 4))")},
-			   {"?b", Expression::parseSingle("(3 4)")},
-			   {"?c", Expression::parseSingle("3")}},
-			  {{"?a", Expression::parseSingle("((1 2) (3 4))")},
-			   {"?b", Expression::parseSingle("(3 4)")},
-			   {"?c", Expression::parseSingle("4")}}}},
-			{"(= (?a (?b ?c 4 ?d)) ((1 a) (2 3 4 5)))",
-			 {{{"?a", Expression::parseSingle("(1 a)")},
-			   {"?b", Expression::parseSingle("2")},
-			   {"?c", Expression::parseSingle("3")},
-			   {"?d", Expression::parseSingle("5")}}}},
-			{"(member ?a ((1 2) (3 4) (a b)))",
-			 {{{"?a", Expression::parseSingle("(1 2)")},
-			   {"?a", Expression::parseSingle("(3 4)")},
-			   {"?a", Expression::parseSingle("(a b)")}}}},
-			{"(member (?a ?b) ((1 2) (3 4) (a b)))",
-			 {{{"?a", Expression::parseSingle("1")},
-			   {"?b", Expression::parseSingle("2")}},
-			  {{"?a", Expression::parseSingle("3")},
-			   {"?b", Expression::parseSingle("4")}},
-			  {{"?a", Expression::parseSingle("a")},
-			   {"?b", Expression::parseSingle("b")}}}}};
+  			   {"?b", Expression::parseSingle("b")}}}}};
   
   if(checkQueries(colData)) {
     nReturnvalue = EXIT_SUCCESS;
