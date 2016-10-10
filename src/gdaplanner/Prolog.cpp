@@ -36,7 +36,7 @@ namespace gdaplanner {
     
     return solSolution;
   }
-
+  
   Solution Prolog::unify(Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) {
     Solution solResult;
     solResult.setValid(false);
@@ -60,10 +60,15 @@ namespace gdaplanner {
       while(dqSolutionStack.size() < exQueryBound.size()) {
 	unsigned int unIndex = dqSolutionStack.size();
 	Expression exOperand = exQueryBound[unIndex];
+	Solution solOperand;
 	
-	Solution solOperand = this->unify(exOperand,
-					  solPrior.subSolution(unIndex),
-					  (unIndex > 0 ? dqSolutionStack.back().finalBindings() : bdgBindings));
+	try {
+	  solOperand = this->unify(exOperand,
+				   solPrior.subSolution(unIndex),
+				   (unIndex > 0 ? dqSolutionStack.back().finalBindings() : bdgBindings));
+	} catch(SolutionsExhausted seException) {
+	  solOperand.setValid(false);
+	}
 	
 	solPrior.subSolution(unIndex) = solOperand;
 	
@@ -93,34 +98,43 @@ namespace gdaplanner {
       Solution solSolution = solPrior;
       solSolution.index()++;
       
-      while(solSolution.subSolutions().size() < exQueryBound.size()) {
+      /*while(solSolution.subSolutions().size() < exQueryBound.size()) {
 	Solution solNew;
 	solNew.index() = -1;
 	
 	solSolution.addSubSolution(solNew);
-      }
+	}*/
       
       bool bOneFound = false;
       unsigned int unI;
-      for(unI = 0; unI < solSolution.subSolutions().size(); ++unI) {
+      
+      for(unI = 0; unI < exQueryBound.size(); ++unI) {
+	if(solSolution.subSolutions().size() <= unI) {
+	  Solution solNew;
+	  solNew.index() = -1;
+	  
+	  solSolution.addSubSolution(solNew);
+	}
+	
 	if(solSolution.subSolution(unI).valid()) {
 	  Solution solTemp = this->unify(exQueryBound[unI], solSolution.subSolution(unI), bdgBindings);
 	  
 	  if(solTemp.valid()) {
+	    solSolution.setValid(true);
 	    solSolution.subSolution(unI) = solTemp;
+	    
 	    bOneFound = true;
 	    break;
+	  } else {
+	    solSolution.subSolution(unI).setValid(false);
 	  }
 	}
       }
       
-      if(!bOneFound) {
-	solSolution.setValid(false);
-	
-	throw SolutionsExhausted();
-      } else {
-	solSolution.subSolutions().resize(unI + 1);
+      if(bOneFound) {
 	solResult = solSolution;
+      } else {
+	solSolution.setValid(false);
       }
     } else {
       std::map<std::string, Expression> mapResolution;
