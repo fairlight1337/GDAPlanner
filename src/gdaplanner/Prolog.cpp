@@ -420,6 +420,14 @@ namespace gdaplanner {
 	  }
       });
     
+    this->addLambdaPredicate("(true)", [this](std::map<std::string, Expression> mapBindings) {
+	return true;
+      });
+    
+    this->addLambdaPredicate("(false)", [this](std::map<std::string, Expression> mapBindings) {
+	return false;
+      });
+    
     this->addLambdaPredicate("(retract ?a)", [this](std::map<std::string, Expression> mapBindings) {
 	  Expression exA = mapBindings["?a"];
 	  
