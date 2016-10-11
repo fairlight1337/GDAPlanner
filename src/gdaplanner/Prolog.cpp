@@ -204,6 +204,20 @@ namespace gdaplanner {
 	  std::cerr << "Error: No format string specified in '" << exQueryBound << "'." << std::endl;
 	}
       }
+    } else if(exQueryBound.predicateName() == "<-") {
+      exQueryBound.popFront();
+      
+      if(exQueryBound.size() >= 2) {
+	if(solPrior.index() == -1) {
+	  Expression exPredicate = exQueryBound[0];
+	  exQueryBound.popFront();
+	  
+	  this->addPredicate(exPredicate, exQueryBound.subExpressions());
+	  
+	  solResult = Solution();
+	  solResult.index() = 0;
+	}
+      }
     } else {
       std::map<std::string, Expression> mapResolution;
       
@@ -833,6 +847,32 @@ namespace gdaplanner {
 	std::map<std::string, Expression> mapBindings;
 	
 	if(exQuery.match(strPredicate, mapBindings)) {
+	  Solution solTemp = this->unify(exAnd, solPrior, mapBindings);
+	  
+	  if(solTemp.valid()) {
+	    solResult = solTemp;
+	  }
+	}
+	
+	return solResult;
+      });
+  }
+  
+  void Prolog::addPredicate(Expression const& exPredicate, std::vector<Expression> const& vecElements) {
+    Expression exAnd;
+    exAnd.add("and");
+    
+    for(Expression exElement : vecElements) {
+      exAnd.add(exElement);
+    }
+    
+    m_vecLambdaPredicates.push_back([this, exPredicate, exAnd](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+	Solution solResult;
+	solResult.setValid(false);
+	
+	std::map<std::string, Expression> mapBindings;
+	
+	if(exQuery.matchEx(exPredicate, mapBindings)) {
 	  Solution solTemp = this->unify(exAnd, solPrior, mapBindings);
 	  
 	  if(solTemp.valid()) {

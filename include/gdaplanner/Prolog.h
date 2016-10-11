@@ -70,6 +70,8 @@ namespace gdaplanner {
     
     void addPredicate(std::string const& strPredicate, std::vector<std::string> const& vecElements);
     
+    void addPredicate(Expression const& exPredicate, std::vector<Expression> const& vecElements);
+    
     template<class ... Args>
       static Prolog::Ptr create(Args ... args) {
       return std::make_shared<Prolog>(std::forward<Args>(args)...);
