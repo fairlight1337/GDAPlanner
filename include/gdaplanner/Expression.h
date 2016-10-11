@@ -946,6 +946,10 @@ namespace gdaplanner {
       
       return *this;
     }
+    
+    bool isBound() {
+      return !(this->isVariable() || this->isWildcard());
+    }
   };
 }
 
