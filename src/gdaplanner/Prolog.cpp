@@ -256,7 +256,7 @@ namespace gdaplanner {
 	if(solPrior.index() == -1) {
 	  Expression exA = mapResolution["?a"];
 	  
-	  if(!(exA.isVariable() || exA.isWildcard())) {
+	  if(exA.isBound()) {
 	    solResult = Solution();
 	    solResult.index() = 0;
 	  }
