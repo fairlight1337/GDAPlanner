@@ -24,7 +24,15 @@ namespace gdaplanner {
     void Context::state(Expression exState, Expression exPreconditions) {
       m_vecStates.push_back(State::create(exState, exPreconditions));
     }
-  
+    
+    unsigned int Context::actionCount() {
+      return m_vecActions.size();
+    }
+    
+    Action::Ptr Context::action(unsigned int unIndex) {
+      return m_vecActions[unIndex];
+    }
+    
     std::vector<State::Ptr> Context::matchingStates(Expression exMatch) {
       std::vector<State::Ptr> vecMatches;
     

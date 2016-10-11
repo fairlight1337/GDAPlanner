@@ -308,6 +308,39 @@ namespace gdaplanner {
     m_vecLambdaPredicates.push_back(lpAdd);
   }
   
+  void Prolog::addLazyListPredicate(std::string strPredicate, std::vector<Expression> vecList) {
+    m_vecLambdaPredicates.push_back(this->makeLazyListPredicate(strPredicate, vecList));
+  }
+  
+  void Prolog::addCallbackPredicate(std::string strPredicate, std::function<Expression(unsigned int)> fncLambda) {
+    m_vecLambdaPredicates.push_back(this->makeCallbackPredicate(strPredicate, fncLambda));
+  }
+  
+  Prolog::LambdaPredicate Prolog::makeCallbackPredicate(std::string strPredicate, std::function<Expression(unsigned int)> fncLambda) {
+    return [strPredicate, fncLambda](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+      Solution solResult;
+      solResult.setValid(false);
+      
+      std::map<std::string, Expression> mapBindings;
+      
+      if(exQuery.match(strPredicate, mapBindings)) {
+	int nIndex = solPrior.index() + 1;
+	
+	if(exQuery == Expression::List && exQuery.size() == 2 && !exQuery[1].isBound()) {
+	  try {
+	    Expression exCallback = fncLambda(nIndex);
+	    
+	    solResult.setValid(true);
+	    solResult.bindings()[exQuery[1].get<std::string>()] = exCallback;
+	    solResult.index() = nIndex;
+	  } catch(const SolutionsExhausted& seException) {}
+	}
+      }
+      
+      return solResult;
+    };
+  }
+  
   Prolog::LambdaPredicate Prolog::makeLambdaPredicate(std::string strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda) {
     return [strPredicate, fncLambda](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
       Solution solResult;
@@ -332,6 +365,42 @@ namespace gdaplanner {
   
   Prolog::LambdaPredicate Prolog::makeSimpleLambdaPredicate(std::string strPredicate, std::function<void(std::map<std::string, Expression>)> fncLambda) {
     return this->makeLambdaPredicate(strPredicate, [fncLambda](std::map<std::string, Expression> mapBindings) -> bool { fncLambda(mapBindings); return true; });
+  }
+  
+  Prolog::LambdaPredicate Prolog::makeLazyListPredicate(std::string strPredicate, std::vector<Expression> vecList) {
+    return [strPredicate, vecList](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+      Solution solResult;
+      solResult.setValid(false);
+      
+      std::map<std::string, Expression> mapBindings;
+      
+      if(exQuery == Expression::List && exQuery.size() == 2 && exQuery[0] == Expression::String) {
+	if(exQuery.match(strPredicate, mapBindings)) {
+	  unsigned int unIndex = solPrior.index() + 1;
+	  
+	  if(exQuery[1].isBound()) { // We're looking for the element in the list
+	    if(unIndex == 0) {
+	      for(Expression exCheck : vecList) {
+		if(exCheck == exQuery[1]) {
+		  solResult.setValid(true);
+		  solResult.index() = unIndex;
+		  
+		  break;
+		}
+	      }
+	    }
+	  } else { // We're returning the contents of the list
+	    if(vecList.size() > unIndex) {
+	      solResult.setValid(true);
+	      solResult.index() = unIndex;
+	      solResult.bindings()[exQuery[1].get<std::string>()] = vecList[unIndex];
+	    }
+	  }
+	}
+      }
+      
+      return solResult;
+    };
   }
   
   void Prolog::addDefaultLambdaPredicates() {
@@ -402,5 +471,49 @@ namespace gdaplanner {
 	
 	return solResult;
       });
+    
+    this->addLambdaPredicate([this](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+	Solution solResult;
+	solResult.setValid(false);
+	
+	std::map<std::string, Expression> mapBindings;
+	
+	if(exQuery.match("(foreach ?a ?b ?c)", mapBindings)) {
+	  if(solPrior.index() == -1) {
+	    Expression exA = mapBindings["?a"];
+	    Expression exB = mapBindings["?b"];
+	    Expression exC = mapBindings["?c"];
+	    
+	    Expression exD; // Final container
+	    
+	    if(!exA.isBound() && exB == Expression::List && !exC.isBound()) {
+	      Solution solTemp;
+	      std::string strVariable = exA.get<std::string>();
+	      
+	      // Run through solutions for ?b
+	      bool bAnyGood = false;
+	      while(solTemp.valid()) {
+		solTemp = this->unify(exB, solTemp, bdgBindings);
+		
+		if(solTemp.valid()) {
+		  bAnyGood = true;
+		  exD.add(solTemp.bindings()[strVariable]);
+		}
+	      }
+	      
+	      if(bAnyGood) {
+		solResult.setValid(true);
+		solResult.index() = 0;
+		solResult.bindings()[exC.get<std::string>()] = exD;
+	      }
+	    }
+	  }
+	}
+	
+	return solResult;
+      });
+    
+    // std::vector<Expression> vecList = {Expression("some-1"), Expression("some-2"), Expression(1), Expression(2), Expression(3)};
+    // this->addLazyListPredicate("(init-predicates ?a)", vecList);
   }
 }

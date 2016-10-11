@@ -29,6 +29,8 @@ namespace gdaplanner {
     Action(Predicate::Ptr pdPredicate, Expression exPreconditions, Expression exEffects);
     ~Action();
     
+    Expression expression();
+    
     virtual std::string toString() override;
     
     template<class ... Args>
