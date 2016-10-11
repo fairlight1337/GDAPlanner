@@ -982,6 +982,48 @@ namespace gdaplanner {
     bool isBound() {
       return !(this->isVariable() || this->isWildcard());
     }
+    
+    template<typename T = unsigned int>
+      unsigned int transformTo(bool& bTransformed) {
+      unsigned int unValue = 0;
+      
+      switch(m_tpType) {
+      case String: {
+	try {
+	  unValue = std::stoul(this->get<std::string>());
+	} catch(const std::invalid_argument& ia) {
+	  bTransformed = false;
+	}
+      } break;
+	
+      case Float: {
+	unValue = (unsigned int)this->get<float>();
+	bTransformed = true;
+      }
+	
+      case Double: {
+	unValue = (unsigned int)this->get<double>();
+	bTransformed = true;
+      }
+	
+      case Integer: {
+	unValue = (unsigned int)this->get<int>();
+	bTransformed = true;
+      }
+	
+      case UnsignedInteger: {
+	unValue = this->get<unsigned int>();
+	bTransformed = true;
+      }
+	
+      default: {
+	// For example List
+	bTransformed = false;
+      } break;
+      }
+      
+      return unValue;
+    }
   };
 }
 

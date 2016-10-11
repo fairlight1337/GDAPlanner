@@ -7,6 +7,7 @@
 #include <map>
 #include <vector>
 #include <deque>
+#include <functional>
 
 #include <gdaplanner/World.h>
 #include <gdaplanner/Expression.h>
@@ -24,8 +25,11 @@ namespace gdaplanner {
   public:
     typedef std::shared_ptr<Prolog> Ptr;
     
+    typedef std::function<Solution(Expression, Solution, Solution::Bindings)> LambdaPredicate;
+    
   private:
     World::Ptr m_wdWorld;
+    std::vector<LambdaPredicate> m_vecLambdaPredicates;
     
   protected:
   public:
@@ -37,6 +41,16 @@ namespace gdaplanner {
     Solution queryEx(Expression exQuery, Solution solPrior, World::Ptr wdWorld = nullptr);
     
     Solution unify(Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings = {});
+    
+    Solution matchLambdaPredicates(Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings);
+    void addLambdaPredicate(std::string strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda);
+    void addSimpleLambdaPredicate(std::string strPredicate, std::function<void(std::map<std::string, Expression>)> fncLambda);
+    void addLambdaPredicate(LambdaPredicate lpAdd);
+    
+    LambdaPredicate makeLambdaPredicate(std::string strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda);
+    LambdaPredicate makeSimpleLambdaPredicate(std::string strPredicate, std::function<void(std::map<std::string, Expression>)> fncLambda);
+    
+    void addDefaultLambdaPredicates();
     
     template<class ... Args>
       static Prolog::Ptr create(Args ... args) {
