@@ -37,20 +37,22 @@ namespace gdaplanner {
     ~Prolog();
     
     World::Ptr world();
-    Solution query(std::string strExpression, Solution solPrior, World::Ptr wdWorld = nullptr);
-    Solution queryEx(Expression exQuery, Solution solPrior, World::Ptr wdWorld = nullptr);
+    Solution query(std::string strExpression, Solution solPrior = Solution(), World::Ptr wdWorld = nullptr);
+    Solution queryEx(Expression exQuery, Solution solPrior = Solution(), World::Ptr wdWorld = nullptr);
     
-    Solution unify(Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings = {});
+    Solution unify(Expression exQuery, Solution solPrior = Solution(), Solution::Bindings bdgBindings = {});
     
     Solution matchLambdaPredicates(Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings);
     void addLambdaPredicate(std::string strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda);
     void addSimpleLambdaPredicate(std::string strPredicate, std::function<void(std::map<std::string, Expression>)> fncLambda);
     void addLambdaPredicate(LambdaPredicate lpAdd);
     void addLazyListPredicate(std::string strPredicate, std::vector<Expression> vecList);
+    void addCallbackPredicate(std::string strPredicate, std::function<Expression(unsigned int)> fncLambda);
     
     LambdaPredicate makeLambdaPredicate(std::string strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda);
     LambdaPredicate makeSimpleLambdaPredicate(std::string strPredicate, std::function<void(std::map<std::string, Expression>)> fncLambda);
-    Prolog::LambdaPredicate makeLazyListPredicate(std::string strPredicate, std::vector<Expression> vecList);
+    LambdaPredicate makeLazyListPredicate(std::string strPredicate, std::vector<Expression> vecList);
+    LambdaPredicate makeCallbackPredicate(std::string strPredicate, std::function<Expression(unsigned int)> fncLambda);
     
     void addDefaultLambdaPredicates();
     

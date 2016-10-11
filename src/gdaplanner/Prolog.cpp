@@ -312,6 +312,35 @@ namespace gdaplanner {
     m_vecLambdaPredicates.push_back(this->makeLazyListPredicate(strPredicate, vecList));
   }
   
+  void Prolog::addCallbackPredicate(std::string strPredicate, std::function<Expression(unsigned int)> fncLambda) {
+    m_vecLambdaPredicates.push_back(this->makeCallbackPredicate(strPredicate, fncLambda));
+  }
+  
+  Prolog::LambdaPredicate Prolog::makeCallbackPredicate(std::string strPredicate, std::function<Expression(unsigned int)> fncLambda) {
+    return [strPredicate, fncLambda](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+      Solution solResult;
+      solResult.setValid(false);
+      
+      std::map<std::string, Expression> mapBindings;
+      
+      if(exQuery.match(strPredicate, mapBindings)) {
+	int nIndex = solPrior.index() + 1;
+	
+	if(exQuery == Expression::List && exQuery.size() == 2 && !exQuery[1].isBound()) {
+	  try {
+	    Expression exCallback = fncLambda(nIndex);
+	    
+	    solResult.setValid(true);
+	    solResult.bindings()[exQuery[1].get<std::string>()] = exCallback;
+	    solResult.index() = nIndex;
+	  } catch(const SolutionsExhausted& seException) {}
+	}
+      }
+      
+      return solResult;
+    };
+  }
+  
   Prolog::LambdaPredicate Prolog::makeLambdaPredicate(std::string strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda) {
     return [strPredicate, fncLambda](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
       Solution solResult;
@@ -484,7 +513,7 @@ namespace gdaplanner {
 	return solResult;
       });
     
-    std::vector<Expression> vecList = {Expression("some-1"), Expression("some-2"), Expression(1), Expression(2), Expression(3)};
-    this->addLazyListPredicate("(init-predicates ?a)", vecList);
+    // std::vector<Expression> vecList = {Expression("some-1"), Expression("some-2"), Expression(1), Expression(2), Expression(3)};
+    // this->addLazyListPredicate("(init-predicates ?a)", vecList);
   }
 }
