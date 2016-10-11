@@ -28,12 +28,18 @@ namespace gdaplanner {
       Expression& operator[](std::string strVariable) {
 	return m_mapBindings[strVariable];
       }
-      
-      std::map<std::string, Expression> bindings() {
+      Expression const& operator[](std::string strVariable) const{
+    return m_mapBindings.find(strVariable)->second;
+      }
+
+      std::map<std::string, Expression>& bindings() {
 	return m_mapBindings;
       }
-      
-      bool bound(std::string strVariable) {
+      std::map<std::string, Expression>const& bindings() const{
+    return m_mapBindings;
+      }
+
+      bool bound(std::string strVariable) const {
 	return m_mapBindings.find(strVariable) != m_mapBindings.end();
       }
       
@@ -116,8 +122,11 @@ namespace gdaplanner {
     Bindings& bindings() {
       return m_bdgBindings;
     }
-    
-    unsigned int indexCount() {
+    Bindings const& bindings() const {
+      return m_bdgBindings;
+    }
+
+    unsigned int indexCount() const {
       return m_vecIndices.size();
     }
     
@@ -128,7 +137,11 @@ namespace gdaplanner {
       
       return m_vecIndices[unIndex];
     }
-    
+    int const& index(unsigned int unIndex = 0) const{
+
+      return m_vecIndices[unIndex];
+    }
+
     void resetIndices(int nValue = -1) {
       std::fill(m_vecIndices.begin(), m_vecIndices.end(), nValue);
       
@@ -148,7 +161,10 @@ namespace gdaplanner {
     std::vector<Solution>& subSolutions() {
       return m_vecSubSolutions;
     }
-    
+    std::vector<Solution>const& subSolutions() const {
+      return m_vecSubSolutions;
+    }
+
     Solution& subSolution(unsigned int unIndex) {
       while(unIndex + 1 > m_vecSubSolutions.size()) {
 	this->addSubSolution(Solution());
@@ -156,12 +172,16 @@ namespace gdaplanner {
       
       return m_vecSubSolutions[unIndex];
     }
-    
+    Solution const& subSolution(unsigned int unIndex) const{
+
+      return m_vecSubSolutions[unIndex];
+    }
+
     void setValid(bool bValid) {
       m_bValid = bValid;
     }
     
-    bool valid() {
+    bool valid() const {
       return m_bValid;
     }
     

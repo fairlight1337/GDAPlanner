@@ -50,7 +50,7 @@ namespace gdaplanner {
     virtual std::string toString() const override;
     
     Expression expression();
-    
+        
     template<class ... Args>
       static Action::Ptr create(Args ... args) {
       return std::make_shared<Action>(std::forward<Args>(args)...);
