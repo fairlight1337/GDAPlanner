@@ -493,11 +493,11 @@ namespace gdaplanner {
                           exState.subExpressions().push_back(crEffect);
                   }
 
-                  Expression exNewStateValue("");
+                  Expression exNewStateValue;
                   maxE = exState.subExpressions().size();
                   for(int e = 0; e < maxE; e++)
                       if(exState.subExpressions()[e].toString() != "")
-                          exNewStateValue.subExpressions().push_back(exState.subExpressions()[e]);
+                          exNewStateValue.add(exState.subExpressions()[e]);
                   bindings.insert(std::pair<std::string, Expression>(exNewState.toString(), exNewStateValue));
 
                   solResult = Solution();
