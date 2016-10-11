@@ -8,6 +8,8 @@
 #include <vector>
 #include <deque>
 #include <functional>
+#include <fstream>
+#include <streambuf>
 
 #include <gdaplanner/World.h>
 #include <gdaplanner/Expression.h>
@@ -71,6 +73,8 @@ namespace gdaplanner {
     void addPredicate(std::string const& strPredicate, std::vector<std::string> const& vecElements);
     
     void addPredicate(Expression const& exPredicate, std::vector<Expression> const& vecElements);
+    
+    bool loadFile(std::string strFilepath);
     
     template<class ... Args>
       static Prolog::Ptr create(Args ... args) {

@@ -169,7 +169,7 @@ namespace gdaplanner {
 		  
 		    exFormat.popFront();
 		  } else {
-		    std::cerr << "Error: Too manh format specifiers for the arguments given in '" << exQueryBound << "'." << std::endl;
+		    std::cerr << "Error: Too many format specifiers for the arguments given in '" << exQueryBound << "'." << std::endl;
 		    bAllOK = false;
 		  }
 		} break;
@@ -216,6 +216,17 @@ namespace gdaplanner {
 	  
 	  solResult = Solution();
 	  solResult.index() = 0;
+	}
+      }
+    } else if(exQueryBound.predicateName() == "load") {
+      if(exQueryBound.size() == 2) {
+	if(solPrior.index() == -1) {
+	  if(exQueryBound[1] == Expression::String) {
+	    if(this->loadFile(exQueryBound[1].get<std::string>())) {
+	      solResult = Solution();
+	      solResult.index() = 0;
+	    }
+	  }
 	}
       }
     } else {
@@ -882,5 +893,24 @@ namespace gdaplanner {
 	
 	return solResult;
       });
+  }
+  
+  bool Prolog::loadFile(std::string strFilepath) {
+    std::ifstream ifFile(strFilepath, std::ios::in);
+    
+    if(ifFile.good()) {
+      std::string strContent((std::istreambuf_iterator<char>(ifFile)),
+			     std::istreambuf_iterator<char>());
+      
+      std::vector<Expression> vecExpressions = Expression::parseString(strContent);
+      
+      for(Expression exLoaded : vecExpressions) {
+	Solution solTemp = this->unify(exLoaded);
+      }
+      
+      return true;
+    }
+    
+    return false;
   }
 }
