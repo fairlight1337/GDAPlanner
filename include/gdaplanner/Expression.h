@@ -879,6 +879,12 @@ namespace gdaplanner {
       m_vecSubExpressions.insert(m_vecSubExpressions.begin(), exPush);
     }
     
+    /** \brief Transforms this Expression into a string
+	
+	The contents of this Expression and all sub-Expressions will
+	be formatted into a proper string.
+	
+	\brief String denoting the contents of this Expression */
     std::string stringify() {
       std::stringstream sts;
       
@@ -917,6 +923,9 @@ namespace gdaplanner {
       return sts.str();
     }
     
+    /** \brief Generates a hash value of this Expression instance
+	
+	\return Hash value for this instance */
     size_t hash() {
       return std::hash<std::string>()(this->stringify());
     }
@@ -931,6 +940,23 @@ namespace gdaplanner {
       return std::make_shared<Expression>(std::forward<Args>(args)...);
     }
     
+    /** \brief Sanitizes all variables recursively
+	
+	Adds the string strSuffix to all variable names and wildcards
+	in this Expression and all sub-Expressions. The main use-case
+	for this is the `(= ?a ?b)` Prolog predicate such that
+	arbitrary values can be mapped against each other. Without
+	this mechanism, the intermediate working variables in the
+	Prolog resolver would get inserted into the final bindings of
+	the predicate. By sanitizing the original variables, the
+	non-sanitized working variables can get filtered out.
+	
+	For reverting the process on the final bindings in a solution,
+	look at Solution::Bindings::desanitize().
+	
+	\param strSuffix The suffix to append to all variable names and wildcards
+	
+	\return Sanitized copy of the current Expression */
     Expression sanitize(std::string strSuffix) {
       if(this->isVariable() || this->isWildcard()) {
 	return Expression(this->get<std::string>() + strSuffix);
@@ -947,6 +973,12 @@ namespace gdaplanner {
       return *this;
     }
     
+    /** \brief Check whether this expression is bound to an actual value
+        
+        Actual values are everything apart from variables and
+        wildcards.
+	
+        \return Boolean value denoting whether this Expression is bound */
     bool isBound() {
       return !(this->isVariable() || this->isWildcard());
     }
