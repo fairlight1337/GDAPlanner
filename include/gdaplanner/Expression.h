@@ -1017,14 +1017,18 @@ namespace gdaplanner {
       return !(this->isVariable() || this->isWildcard());
     }
     
-    template<typename T = unsigned int>
-      unsigned int transformTo(bool& bTransformed) {
+    bool isNumber() {
+      return m_tpType == Float || m_tpType == Double || m_tpType == Integer | m_tpType == UnsignedInteger;
+    }
+    
+    unsigned int transformToUnsignedInteger(bool& bTransformed) {
       unsigned int unValue = 0;
       
       switch(m_tpType) {
       case String: {
 	try {
 	  unValue = std::stoul(this->get<std::string>());
+	  bTransformed = true;
 	} catch(const std::invalid_argument& ia) {
 	  bTransformed = false;
 	}
@@ -1033,22 +1037,22 @@ namespace gdaplanner {
       case Float: {
 	unValue = (unsigned int)this->get<float>();
 	bTransformed = true;
-      }
+      } break;
 	
       case Double: {
 	unValue = (unsigned int)this->get<double>();
 	bTransformed = true;
-      }
+      } break;
 	
       case Integer: {
 	unValue = (unsigned int)this->get<int>();
 	bTransformed = true;
-      }
+      } break;
 	
       case UnsignedInteger: {
 	unValue = this->get<unsigned int>();
 	bTransformed = true;
-      }
+      } break;
 	
       default: {
 	// For example List
@@ -1057,6 +1061,48 @@ namespace gdaplanner {
       }
       
       return unValue;
+    }
+    
+    double transformToDouble(bool& bTransformed) {
+      double dValue = 0;
+      
+      switch(m_tpType) {
+      case String: {
+	try {
+	  dValue = std::stod(this->get<std::string>());
+	  bTransformed = true;
+	} catch(const std::invalid_argument& ia) {
+	  bTransformed = false;
+	}
+      } break;
+	
+      case Float: {
+	dValue = (double)this->get<float>();
+	bTransformed = true;
+      } break;
+	
+      case Double: {
+	dValue = this->get<double>();
+	bTransformed = true;
+      } break;
+	
+      case Integer: {
+	dValue = (double)this->get<int>();
+	bTransformed = true;
+      } break;
+	
+      case UnsignedInteger: {
+	dValue = (double)this->get<unsigned int>();
+	bTransformed = true;
+      } break;
+	
+      default: {
+	// For example List
+	bTransformed = false;
+      } break;
+      }
+      
+      return dValue;
     }
   };
 }
