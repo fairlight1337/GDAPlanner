@@ -129,6 +129,80 @@ namespace gdaplanner {
       } else {
 	solSolution.setValid(false);
       }
+    } else if(exQueryBound.predicateName() == "format") {
+      if(solPrior.index() == -1) {
+	Expression exFormat = exQueryBound;
+	exFormat.popFront();
+	exFormat = exFormat.parametrize(bdgBindings.bindings());
+      
+	if(exFormat.size() > 0) {
+	  std::string strFormat = exFormat[0].get<std::string>();
+	  exFormat.popFront();
+	  std::stringstream stsOut;
+        
+	  bool bAllOK = true;
+	
+	  size_t szSpecifier, szSpecifierOld = -2;
+	  while(szSpecifier != std::string::npos) {
+	    szSpecifier = strFormat.find("~", szSpecifier + 1);
+	  
+	    if(szSpecifier != std::string::npos) {
+	      if(szSpecifier != szSpecifierOld) {
+		stsOut << strFormat.substr(szSpecifierOld + 2, szSpecifier - szSpecifierOld - 2);
+	      
+		szSpecifierOld = szSpecifier;
+	      }
+	    
+	      if(szSpecifier < strFormat.length() - 1) {
+		char cType = strFormat[szSpecifier + 1];
+	      
+		switch(cType) {
+		case 'a': {
+		  if(exFormat.size() > 0) {
+		    if(exFormat[0] == Expression::String) {
+		      std::string strContent = exFormat[0].get<std::string>();
+		      stsOut << strContent;
+		    } else {
+		      stsOut << exFormat[0];
+		    }
+		  
+		    exFormat.popFront();
+		  } else {
+		    std::cerr << "Error: Too manh format specifiers for the arguments given in '" << exQueryBound << "'." << std::endl;
+		    bAllOK = false;
+		  }
+		} break;
+		
+		case '%': {
+		  stsOut << std::endl;
+		} break;
+		
+		default: {
+		  std::cerr << "Error: Invalid format specifier '~" << cType << "' in '" << exQueryBound << "'." << std::endl;
+		  bAllOK = false;
+		} break;
+		}
+	      } else {
+		std::cerr << "Error: Format string end with typeless specifier in '" << exQueryBound << "'." << std::endl;
+		bAllOK = false;
+	      }
+	    }
+	  }
+	
+	  if(bAllOK) {
+	    if(szSpecifierOld + 2 < strFormat.size()) {
+	      stsOut << strFormat.substr(szSpecifierOld + 2);
+	    }
+	  
+	    std::cout << stsOut.str();
+	  
+	    solResult = Solution();
+	    solResult.index() = 0;
+	  }
+	} else {
+	  std::cerr << "Error: No format string specified in '" << exQueryBound << "'." << std::endl;
+	}
+      }
     } else {
       std::map<std::string, Expression> mapResolution;
       
@@ -187,10 +261,49 @@ namespace gdaplanner {
 	if(solPrior.index() == -1) {
 	  Expression exA = mapResolution["?a"];
 	  
-	  if(!(exA.isVariable() || exA.isWildcard())) {
+	  if(exA.isBound()) {
 	    solResult = Solution();
 	    solResult.index() = 0;
 	  }
+	}
+      } else if(exQueryBound.match("(assert ?a)", mapResolution)) {
+	if(solPrior.index() == -1) {
+	  Expression exA = mapResolution["?a"];
+	  
+	  if(exA.isBound()) {
+	    m_wdWorld->assertFact(exA);
+	    
+	    solResult = Solution();
+	    solResult.index() = 0;
+	  }
+	}
+      } else if(exQueryBound.match("(retract ?a)", mapResolution)) {
+	if(solPrior.index() == -1) {
+	  Expression exA = mapResolution["?a"];
+	  
+	  if(exA.isBound()) {
+	    m_wdWorld->retractFact(exA);
+	    
+	    solResult = Solution();
+	    solResult.index() = 0;
+	  }
+	}
+      } else if(exQueryBound.match("(holds ?a)", mapResolution)) {
+	Expression exA = mapResolution["?a"];
+	std::vector<std::map<std::string, Expression>> vecSolutions = m_wdWorld->holds(exA);
+	
+	unsigned int unIndex = solPrior.index() + 1;
+	if(vecSolutions.size() > unIndex) {
+	  solResult = Solution();
+	  solResult.bindings() = Solution::Bindings(vecSolutions[unIndex]);
+	  solResult.index() = unIndex;
+	}
+      } else if(exQueryBound.match("(print-world)", mapResolution)) {
+	if(solPrior.index() == -1) {
+	  std::cout << *m_wdWorld << std::endl;
+	  
+	  solResult = Solution();
+	  solResult.index() = 0;
 	}
       }
     }
