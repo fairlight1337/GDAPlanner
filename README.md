@@ -52,3 +52,12 @@ documentation. View it starting from the `index.html` contained therein:
 ```bash
 google-chrome doc/html/index.html
 ```
+
+
+Online Documentation
+===
+
+Be sure to check the
+[Wiki](https://github.com/fairlight1337/GDAPlanner/wiki)! There are
+tutorials and further explanations of the concepts and code pieces
+there.
