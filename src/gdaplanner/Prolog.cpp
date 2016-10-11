@@ -3,6 +3,7 @@
 
 namespace gdaplanner {
   Prolog::Prolog(World::Ptr wdWorld) : m_wdWorld(wdWorld) {
+    this->addDefaultLambdaPredicates();
   }
   
   Prolog::~Prolog() {
@@ -12,11 +13,11 @@ namespace gdaplanner {
     return m_wdWorld;
   }
   
-  Solution Prolog::query(std::string strExpression, Solution solPrior, World::Ptr wdWorld) {
+  Solution Prolog::query(std::string const& strExpression, Solution const& solPrior, World::Ptr wdWorld) {
     return this->queryEx(Expression::parseSingle(strExpression), solPrior, wdWorld);
   }
   
-  Solution Prolog::queryEx(Expression exQuery, Solution solPrior, World::Ptr wdWorld) {
+  Solution Prolog::queryEx(Expression const& exQuery, Solution const& solPrior, World::Ptr wdWorld) {
     Solution solSolution;
     solSolution.setValid(false);
     
@@ -37,7 +38,7 @@ namespace gdaplanner {
     return solSolution;
   }
   
-  Solution Prolog::unify(Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) {
+  Solution Prolog::unify(Expression const& exQuery, Solution solPrior, Solution::Bindings const& bdgBindings) {
     Solution solResult;
     solResult.setValid(false);
     
@@ -142,7 +143,7 @@ namespace gdaplanner {
         
 	  bool bAllOK = true;
 	
-	  size_t szSpecifier, szSpecifierOld = -2;
+	  size_t szSpecifier = 0, szSpecifierOld = -2;
 	  while(szSpecifier != std::string::npos) {
 	    szSpecifier = strFormat.find("~", szSpecifier + 1);
 	  
@@ -253,15 +254,6 @@ namespace gdaplanner {
               }
 
               if(!solTemp.valid()) {
-                solResult = Solution();
-                solResult.index() = 0;
-              }
-            }
-      } else if(exQueryBound.match("(bound ?a)", mapResolution)) {
-            if(solPrior.index() == -1) {
-              Expression exA = mapResolution["?a"];
-
-              if(exA.isBound()) {
                 solResult = Solution();
                 solResult.index() = 0;
               }
@@ -392,29 +384,6 @@ namespace gdaplanner {
               if(allEqual && exObject.isVariable())
                   solResult.bindings() = mapR;
           }
-
-      } else if(exQueryBound.match("(assert ?a)", mapResolution)) {
-	if(solPrior.index() == -1) {
-	  Expression exA = mapResolution["?a"];
-	  
-	  if(exA.isBound()) {
-	    m_wdWorld->assertFact(exA);
-	    
-	    solResult = Solution();
-	    solResult.index() = 0;
-	  }
-	}
-      } else if(exQueryBound.match("(retract ?a)", mapResolution)) {
-	if(solPrior.index() == -1) {
-	  Expression exA = mapResolution["?a"];
-	  
-	  if(exA.isBound()) {
-	    m_wdWorld->retractFact(exA);
-	    
-	    solResult = Solution();
-	    solResult.index() = 0;
-	  }
-	}
       } else if(exQueryBound.match("(holds ?a)", mapResolution)) {
 	Expression exA = mapResolution["?a"];
 	std::vector<std::map<std::string, Expression>> vecSolutions = m_wdWorld->holds(exA);
@@ -536,13 +505,8 @@ namespace gdaplanner {
                   solResult.bindings() = bindings;
               }
           }
-      } else if(exQueryBound.match("(print-world)", mapResolution)) {
-	if(solPrior.index() == -1) {
-	  std::cout << *m_wdWorld << std::endl;
-	  
-	  solResult = Solution();
-	  solResult.index() = 0;
-	}
+      } else {
+        solResult = this->matchLambdaPredicates(exQueryBound, solPrior, bdgBindings);
       }
     }
     
@@ -551,5 +515,265 @@ namespace gdaplanner {
     }
     
     return solResult;
+  }
+
+  Solution Prolog::matchLambdaPredicates(Expression const& exQuery, Solution const& solPrior, Solution::Bindings const& bdgBindings) {
+    Solution solResult;
+    solResult.setValid(false);
+    
+    for(LambdaPredicate lpPredicate : m_vecLambdaPredicates) {
+      Solution solTemp = lpPredicate(exQuery, solPrior, bdgBindings);
+      
+      if(solTemp.valid()) {
+	solResult = solTemp;
+	break;
+      }
+    }
+    
+    return solResult;
+  }
+
+  void Prolog::addLambdaPredicate(std::string const& strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda) {
+    this->addLambdaPredicate(this->makeLambdaPredicate(strPredicate, fncLambda));
+  }
+  
+  void Prolog::addSimpleLambdaPredicate(std::string const& strPredicate, std::function<void(std::map<std::string, Expression>)> fncLambda) {
+    this->addLambdaPredicate(this->makeSimpleLambdaPredicate(strPredicate, fncLambda));
+  }
+  
+  void Prolog::addLambdaPredicate(LambdaPredicate const& lpAdd) {
+    m_vecLambdaPredicates.push_back(lpAdd);
+  }
+  
+  void Prolog::addLazyListPredicate(std::string const& strPredicate, std::vector<Expression> const& vecList) {
+    m_vecLambdaPredicates.push_back(this->makeLazyListPredicate(strPredicate, vecList));
+  }
+  
+  void Prolog::addCallbackPredicate(std::string const& strPredicate, std::function<Expression(unsigned int)> fncLambda) {
+    m_vecLambdaPredicates.push_back(this->makeCallbackPredicate(strPredicate, fncLambda));
+  }
+
+  Prolog::LambdaPredicate Prolog::makeCallbackPredicate(std::string const& strPredicate, std::function<Expression(unsigned int)> fncLambda) {
+    return [strPredicate, fncLambda](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+      Solution solResult;
+      solResult.setValid(false);
+      
+      std::map<std::string, Expression> mapBindings;
+      
+      if(exQuery.match(strPredicate, mapBindings)) {
+	int nIndex = solPrior.index() + 1;
+	
+	if(exQuery == Expression::List && exQuery.size() == 2 && !exQuery[1].isBound()) {
+	  try {
+	    Expression exCallback = fncLambda(nIndex);
+	    
+	    solResult.setValid(true);
+	    solResult.bindings()[exQuery[1].get<std::string>()] = exCallback;
+	    solResult.index() = nIndex;
+	  } catch(const SolutionsExhausted& seException) {}
+	}
+      }
+      
+      return solResult;
+    };
+  }
+  
+  Prolog::LambdaPredicate Prolog::makeLambdaPredicate(std::string const& strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda) {
+    return [strPredicate, fncLambda](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+      Solution solResult;
+      solResult.setValid(false);
+      
+      std::map<std::string, Expression> mapBindings;
+      
+      if(exQuery.match(strPredicate, mapBindings)) {
+	if(solPrior.index() == -1) {
+	  bool bResult = fncLambda(mapBindings);
+	  
+	  if(bResult) {
+	    solResult = Solution();
+	    solResult.index() = 0;
+	  }
+	}
+      }
+      
+      return solResult;
+    };
+  }
+  
+  Prolog::LambdaPredicate Prolog::makeSimpleLambdaPredicate(std::string const& strPredicate, std::function<void(std::map<std::string, Expression>)> fncLambda) {
+    return this->makeLambdaPredicate(strPredicate, [fncLambda](std::map<std::string, Expression> mapBindings) -> bool { fncLambda(mapBindings); return true; });
+  }
+
+  Prolog::LambdaPredicate Prolog::makeLazyListPredicate(std::string const& strPredicate, std::vector<Expression> const& vecList) {
+    return [strPredicate, vecList](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+      Solution solResult;
+      solResult.setValid(false);
+      
+      std::map<std::string, Expression> mapBindings;
+      
+      if(exQuery == Expression::List && exQuery.size() == 2 && exQuery[0] == Expression::String) {
+	if(exQuery.match(strPredicate, mapBindings)) {
+	  unsigned int unIndex = solPrior.index() + 1;
+	  
+	  if(exQuery[1].isBound()) { // We're looking for the element in the list
+	    if(unIndex == 0) {
+	      for(Expression exCheck : vecList) {
+		if(exCheck == exQuery[1]) {
+		  solResult.setValid(true);
+		  solResult.index() = unIndex;
+		  
+		  break;
+		}
+	      }
+	    }
+	  } else { // We're returning the contents of the list
+	    if(vecList.size() > unIndex) {
+	      solResult.setValid(true);
+	      solResult.index() = unIndex;
+	      solResult.bindings()[exQuery[1].get<std::string>()] = vecList[unIndex];
+	    }
+	  }
+	}
+      }
+      
+      return solResult;
+    };
+  }
+
+  void Prolog::addDefaultLambdaPredicates() {
+    this->addSimpleLambdaPredicate("(print-world)", [this](std::map<std::string, Expression> mapBindings) {
+	std::cout << *m_wdWorld << std::endl;
+      });
+    
+    this->addLambdaPredicate("(assert ?a)", [this](std::map<std::string, Expression> mapBindings) {
+	  Expression exA = mapBindings["?a"];
+	  
+	  if(exA.isBound()) {
+	    m_wdWorld->assertFact(exA);
+	    
+	    return true;
+	  } else {
+	    return false;
+	  }
+      });
+    
+    this->addLambdaPredicate("(retract ?a)", [this](std::map<std::string, Expression> mapBindings) {
+	  Expression exA = mapBindings["?a"];
+	  
+	  if(exA.isBound()) {
+	    m_wdWorld->retractFact(exA);
+	    
+	    return true;
+	  } else {
+	    return false;
+	  }
+      });
+    
+    this->addLambdaPredicate("(bound ?a)", [](std::map<std::string, Expression> mapBindings) {
+	return mapBindings["?a"].isBound();
+      });
+    
+    this->addLambdaPredicate([](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+	Solution solResult;
+	solResult.setValid(false);
+	
+	std::map<std::string, Expression> mapBindings;
+	
+	if(exQuery.match("(length ?a ?b)", mapBindings)) {
+	  if(solPrior.index() == -1) {
+	    Expression exA = mapBindings["?a"];
+	    Expression exB = mapBindings["?b"];
+	    
+	    if(exA.isBound() && exA == Expression::List) { // This is a must
+	      unsigned int unLength = exA.size();
+	      
+	      if(exB.isBound()) { // We're checking the length
+		bool bTransformed;
+		unsigned int unTransformed = exB.transformTo<unsigned int>(bTransformed);
+		
+		if(bTransformed) {
+		  if(unLength == unTransformed) {
+		    solResult = Solution();
+		    solResult.index() = 0;
+		  }
+		}
+	      } else { // We're getting the length
+		solResult = Solution();
+		solResult.index() = 0;
+		solResult.bindings()[exB.get<std::string>()] = Expression(unLength);
+	      }
+	    }
+	  }
+	}
+	
+	return solResult;
+      });
+    
+    this->addLambdaPredicate([this](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+	Solution solResult;
+	solResult.setValid(false);
+	
+	std::map<std::string, Expression> mapBindings;
+	
+	if(exQuery.match("(foreach ?a ?b ?c)", mapBindings)) {
+	  if(solPrior.index() == -1) {
+	    Expression exA = mapBindings["?a"];
+	    Expression exB = mapBindings["?b"];
+	    Expression exC = mapBindings["?c"];
+	    
+	    Expression exD; // Final container
+	    
+	    if(!exA.isBound() && exB == Expression::List && !exC.isBound()) {
+	      Solution solTemp;
+	      std::string strVariable = exA.get<std::string>();
+	      
+	      // Run through solutions for ?b
+	      bool bAnyGood = false;
+	      while(solTemp.valid()) {
+		solTemp = this->unify(exB, solTemp, bdgBindings);
+		
+		if(solTemp.valid()) {
+		  bAnyGood = true;
+		  exD.add(solTemp.bindings()[strVariable]);
+		}
+	      }
+	      
+	      if(bAnyGood) {
+		solResult.setValid(true);
+		solResult.index() = 0;
+		solResult.bindings()[exC.get<std::string>()] = exD;
+	      }
+	    }
+	  }
+	}
+	
+	return solResult;
+      });
+  }
+
+  void Prolog::addPredicate(std::string const& strPredicate, std::vector<std::string> const& vecElements) {
+    Expression exAnd;
+    exAnd.add("and");
+    
+    for(std::string strElement : vecElements) {
+      exAnd.add(Expression::parseSingle(strElement));
+    }
+    
+    m_vecLambdaPredicates.push_back([this, strPredicate, exAnd](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+	Solution solResult;
+	solResult.setValid(false);
+	
+	std::map<std::string, Expression> mapBindings;
+	
+	if(exQuery.match(strPredicate, mapBindings)) {
+	  Solution solTemp = this->unify(exAnd, solPrior, mapBindings);
+	  
+	  if(solTemp.valid()) {
+	    solResult = solTemp;
+	  }
+	}
+	
+	return solResult;
+      });
   }
 }
