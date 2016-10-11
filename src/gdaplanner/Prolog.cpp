@@ -913,4 +913,15 @@ namespace gdaplanner {
     
     return false;
   }
+  
+  std::string Prolog::getProgramDirectory() {
+    char arrcResult[1024];
+    ssize_t szCount = readlink("/proc/self/exe", arrcResult, 1024);
+    
+    return std::string(arrcResult, (szCount > 0) ? szCount : 0);
+  }
+  
+  bool Prolog::loadStandardLibrary() {
+    return this->loadFile("../data/lib/std/main.plg");
+  }
 }
