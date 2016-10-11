@@ -293,6 +293,13 @@ namespace gdaplanner {
 	  solResult.bindings() = Solution::Bindings(vecSolutions[unIndex]);
 	  solResult.index() = unIndex;
 	}
+      } else if(exQueryBound.match("(print-world)", mapResolution)) {
+	if(solPrior.index() == -1) {
+	  std::cout << *m_wdWorld << std::endl;
+	  
+	  solResult = Solution();
+	  solResult.index() = 0;
+	}
       }
     }
     
