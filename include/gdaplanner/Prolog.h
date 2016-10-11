@@ -46,9 +46,11 @@ namespace gdaplanner {
     void addLambdaPredicate(std::string strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda);
     void addSimpleLambdaPredicate(std::string strPredicate, std::function<void(std::map<std::string, Expression>)> fncLambda);
     void addLambdaPredicate(LambdaPredicate lpAdd);
+    void addLazyListPredicate(std::string strPredicate, std::vector<Expression> vecList);
     
     LambdaPredicate makeLambdaPredicate(std::string strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda);
     LambdaPredicate makeSimpleLambdaPredicate(std::string strPredicate, std::function<void(std::map<std::string, Expression>)> fncLambda);
+    Prolog::LambdaPredicate makeLazyListPredicate(std::string strPredicate, std::vector<Expression> vecList);
     
     void addDefaultLambdaPredicates();
     
