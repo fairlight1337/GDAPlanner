@@ -168,6 +168,8 @@ namespace gdaplanner {
     /** \brief Default destructor */
     ~Expression();
     
+    bool parseAssertStringValue(std::string strValue);
+    
     /** \brief Returns the Expression::Type of this instance 
 
 	\return Expression::Type of this instance */
