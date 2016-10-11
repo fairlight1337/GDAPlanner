@@ -10,6 +10,7 @@ using namespace gdaplanner;
 bool processQuery(std::string strQuery) {
   World::Ptr wdWorld = World::create();
   Prolog::Ptr plProlog = Prolog::create(wdWorld);
+  plProlog->loadStandardLibrary();
   
   Solution solSolution;
   int nCount = 0;

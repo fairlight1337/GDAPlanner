@@ -10,6 +10,7 @@
 #include <functional>
 #include <fstream>
 #include <streambuf>
+#include <unistd.h>
 
 #include <gdaplanner/World.h>
 #include <gdaplanner/Expression.h>
@@ -75,6 +76,9 @@ namespace gdaplanner {
     void addPredicate(Expression const& exPredicate, std::vector<Expression> const& vecElements);
     
     bool loadFile(std::string strFilepath);
+    
+    std::string getProgramDirectory();
+    bool loadStandardLibrary();
     
     template<class ... Args>
       static Prolog::Ptr create(Args ... args) {
