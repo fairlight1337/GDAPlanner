@@ -13,11 +13,11 @@ namespace gdaplanner {
     return m_wdWorld;
   }
   
-  Solution Prolog::query(std::string strExpression, Solution solPrior, World::Ptr wdWorld) {
+  Solution Prolog::query(std::string const& strExpression, Solution const& solPrior, World::Ptr wdWorld) {
     return this->queryEx(Expression::parseSingle(strExpression), solPrior, wdWorld);
   }
   
-  Solution Prolog::queryEx(Expression exQuery, Solution solPrior, World::Ptr wdWorld) {
+  Solution Prolog::queryEx(Expression const& exQuery, Solution const& solPrior, World::Ptr wdWorld) {
     Solution solSolution;
     solSolution.setValid(false);
     
@@ -38,7 +38,7 @@ namespace gdaplanner {
     return solSolution;
   }
   
-  Solution Prolog::unify(Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) {
+  Solution Prolog::unify(Expression const& exQuery, Solution solPrior, Solution::Bindings const& bdgBindings) {
     Solution solResult;
     solResult.setValid(false);
     
@@ -243,40 +243,21 @@ namespace gdaplanner {
 	  }
 	}
       } else if(exQueryBound.match("(not ?a)", mapResolution)) {
-	if(solPrior.index() == -1) {
-	  Expression exA = mapResolution["?a"];
-	  Solution solTemp;
-	  
-	  try {
-	    solTemp = this->unify(exA, solPrior, bdgBindings);
-	  } catch(SolutionsExhausted seException) {
-	    solTemp.setValid(false);
-	  }
+          if(solPrior.index() == -1) {
+            Expression exA = mapResolution["?a"];
+            Solution solTemp;
 
-	  if(!solTemp.valid()) {
-	    solResult = Solution();
-	    solResult.index() = 0;
-	  }
-	}
-      } else if(exQueryBound.match("(bound ?a)", mapResolution)) {
-	if(solPrior.index() == -1) {
-	  Expression exA = mapResolution["?a"];
-	  
-	  if(exA.isBound()) {
-	    solResult = Solution();
-	    solResult.index() = 0;
-	  }
-	}
-      } else if(exQueryBound.match("(holds ?a)", mapResolution)) {
-	Expression exA = mapResolution["?a"];
-	std::vector<std::map<std::string, Expression>> vecSolutions = m_wdWorld->holds(exA);
-	
-	unsigned int unIndex = solPrior.index() + 1;
-	if(vecSolutions.size() > unIndex) {
-	  solResult = Solution();
-	  solResult.bindings() = Solution::Bindings(vecSolutions[unIndex]);
-	  solResult.index() = unIndex;
-	}
+              try {
+                solTemp = this->unify(exA, solPrior, bdgBindings);
+              } catch(SolutionsExhausted seException) {
+                solTemp.setValid(false);
+              }
+
+              if(!solTemp.valid()) {
+                solResult = Solution();
+                solResult.index() = 0;
+              }
+            }
       } else if(exQueryBound.match("(1- ?value ?newvalue)", mapResolution)) {
           Expression exValue = mapResolution["?value"];
           Expression exNewValue = mapResolution["?newvalue"];
@@ -335,187 +316,197 @@ namespace gdaplanner {
                   solResult.setValid(true);
               }
           }
-      } else if(exQueryBound.match("(holds ?goal ?state)", mapResolution)) {
-	Expression exGoal = mapResolution["?goal"];
-	Expression exState = mapResolution["?state"];
-	std::vector<Expression> exGoalAuxVec; exGoalAuxVec.clear(); exGoalAuxVec.push_back(exGoal);
-	std::vector<Expression> exStateAuxVec; exStateAuxVec.clear(); exStateAuxVec.push_back(exState);
-	
-	if((solPrior.index() == -1) && (exGoal.isBound()) && (exState.isBound()))
-          {
-	    bool allMatch = true;
-	    std::map<std::string, Expression> bindings; bindings.clear();
-	    if(exGoal.type() != Expression::List)
-	      exGoal = Expression(exGoalAuxVec);
-	    if(exState.type() != Expression::List)
-	      exState = Expression(exStateAuxVec);
-	    
-	    int maxG = exGoal.subExpressions().size();
-	    int maxS = exState.subExpressions().size();
-	    for(int g = 0; allMatch && (g < maxG); g++)
-              {
-		bool found = false;
-		for(int s = 0; (!found) && (s < maxS); s++)
-                  {
-		    std::map<std::string, Expression> newBindings; newBindings.clear();
-		    newBindings = exGoal.subExpressions()[g].resolve(exState.subExpressions()[s], found);
-		    for(int k = 0; found && (k < maxG); k++)
-                      {
-			exGoal.subExpressions()[k] = exGoal.subExpressions()[k].parametrize(newBindings);
-                      }
-		    for(std::map<std::string, Expression>::const_iterator it = newBindings.begin();
-			it != newBindings.end(); it++)
-		      bindings.insert(std::pair<std::string, Expression>(it->first, it->second));
-                  }
-		allMatch = found;
-              }
-	    if(allMatch)
-              {
-		solResult = Solution();
-		/* Should the next line be allowed through?*/
-		//solResult.bindings() = bindings;
-		solResult.index() = 0;
-              }
-          }
-      } else if(exQueryBound.match("(apply ?effects ?state ?newstate)", mapResolution)) {
-	Expression exEffects = mapResolution["?effects"];
-	Expression exState = mapResolution["?state"];
-	Expression exNewState = mapResolution["?newstate"];
-	std::vector<Expression> exEffectsAuxVec; exEffectsAuxVec.clear(); exEffectsAuxVec.push_back(exEffects);
-	std::vector<Expression> exStateAuxVec; exStateAuxVec.clear(); exStateAuxVec.push_back(exState);
-	
-	if((solPrior.index() == -1) && (exEffects.isBound()) && (exState.isBound())
-	   && (!exNewState.isBound()))
-          {
-	    if(exNewState.isWildcard())
-              {
-		solResult = Solution();
-		solResult.index() = 0;
-              }
-	    else
-              {
-		std::map<std::string, Expression> bindings; bindings.clear();
-		
-		if(exEffects.type() != Expression::List)
-		  exEffects = Expression(exEffectsAuxVec);
-		if(exState.type() != Expression::List)
-		  exState = Expression(exStateAuxVec);
-		
-		int maxE = exEffects.size();
-		for(int e = 0; e < maxE; e++)
-                  {
-		    Expression crEffect = exEffects.subExpressions()[e];
-		    Expression crNegEffect = crEffect.negate();
-		    int maxS = exState.subExpressions().size();
-		    bool found = false;
-		    for(int s = 0; (!found) && (s < maxS); s++)
-                      {
-			std::map<std::string, Expression> bindings; bindings.clear();
-			bindings = crEffect.resolve(exState.subExpressions()[s], found);
-			if(found)
-			  for(int k = 0; k < maxE; k++)
-			    exEffects.subExpressions()[k] = exEffects.subExpressions()[k].parametrize(bindings);
-			else
-                          {
-			    bindings.clear();
-			    bool negated = false;
-			    bindings = crNegEffect.resolve(exState.subExpressions()[s], negated);
-			    if(negated)
-                              {
-				crEffect = crEffect.parametrize(bindings);
-				crNegEffect = crNegEffect.parametrize(bindings);
-				exState.subExpressions()[s] = Expression("");
-				for(int k = 0; k < maxE; k++)
-				  exEffects.subExpressions()[k] = exEffects.subExpressions()[k].parametrize(bindings);
-                              }
-                          }
-                      }
-		    if(!found)
-		      exState.subExpressions().push_back(crEffect);
-                  }
-		
-		Expression exNewStateValue("");
-		maxE = exState.subExpressions().size();
-		for(int e = 0; e < maxE; e++)
-		  if(exState.subExpressions()[e].toString() != "")
-		    exNewStateValue.subExpressions().push_back(exState.subExpressions()[e]);
-		bindings.insert(std::pair<std::string, Expression>(exNewState.toString(), exNewStateValue));
-		
-		solResult = Solution();
-		solResult.index() = 0;
-		solResult.bindings() = bindings;
-              }
-          }
       } else if(exQueryBound.match("(append ?object ?list ?newlist)", mapResolution)) {
-	Expression exObject = mapResolution["?object"];
-	Expression exList = mapResolution["?list"];
-	Expression exNewList = mapResolution["?newlist"];
-	int nIndex = solPrior.index();
-	
-	solResult.index() = 0;
-	if(0 <= nIndex)
-	  solResult.setValid(false);
+          Expression exObject = mapResolution["?object"];
+          Expression exList = mapResolution["?list"];
+          Expression exNewList = mapResolution["?newlist"];
+          int nIndex = solPrior.index();
+
+          solResult.index() = 0;
+          if(0 <= nIndex)
+              solResult.setValid(false);
           else if((!exObject.isVariable()) && (!exObject.isWildcard()))
-	    {
+          {
               if((exList == Expression::List) && (exNewList == Expression::List))
-		{
+              {
                   int maxK = exList.size();
                   int maxJ = exNewList.size();
                   bool allEqual = ((maxK + 1) == maxJ);
                   for(int k = 0; allEqual && (k < maxK); k++)
-		    allEqual = (exList[k] == exNewList[k]);
+                      allEqual = (exList[k] == exNewList[k]);
                   allEqual = (allEqual && (exNewList[maxJ - 1] == exObject));
                   solResult.setValid(allEqual);
-		}
+              }
               else if(exList == Expression::List)
-		{
+              {
                   if(exNewList.isVariable())
-		    {
+                  {
                       solResult.setValid(true);
                       std::map<std::string, Expression> mapR;
                       Expression exAppended = exList;
                       exAppended.add(exObject);
                       mapR.insert(std::pair<std::string, Expression>(exNewList.toString(), exAppended));
                       solResult.bindings() = mapR;
-		    }
+                  }
                   else if(exNewList.isWildcard())
-		    solResult.setValid(true);
-		}
+                      solResult.setValid(true);
+              }
               else if(exNewList == Expression::List)
-		{
+              {
                   if(exList.isVariable())
-		    {
+                  {
                       int maxK = exNewList.size();
                       bool popped = (exObject == exNewList[maxK - 1]);
                       solResult.setValid(popped);
                       std::map<std::string, Expression> mapR;
                       Expression exPopped;
                       for(int k = 0; popped && (k < (maxK - 1)); k++)
-			exPopped.add(exNewList[k]);
+                          exPopped.add(exNewList[k]);
                       mapR.insert(std::pair<std::string, Expression>(exList.toString(), exPopped));
                       if(popped)
-			solResult.bindings() = mapR;
-		    }
+                          solResult.bindings() = mapR;
+                  }
                   else if(exList.isWildcard())
-		    solResult.setValid(true);
-		}
-	    }
+                      solResult.setValid(true);
+              }
+          }
           else if((exList == Expression::List) && (exNewList == Expression::List))
-	    {
+          {
               int maxK = exList.size();
               int maxJ = exNewList.size();
               std::map<std::string, Expression> mapR;
               bool allEqual = ((maxK + 1) == maxJ);
               for(int k = 0; allEqual && (k < maxK); k++)
-		allEqual = (exList[k] == exNewList[k]);
+                  allEqual = (exList[k] == exNewList[k]);
               if(maxJ)
-		mapR.insert(std::pair<std::string, Expression>(exObject.toString(), exNewList[maxJ - 1]));
+                  mapR.insert(std::pair<std::string, Expression>(exObject.toString(), exNewList[maxJ - 1]));
               solResult.setValid(allEqual);
               if(allEqual && exObject.isVariable())
-		solResult.bindings() = mapR;
-	    }
+                  solResult.bindings() = mapR;
+          }
+      } else if(exQueryBound.match("(holds ?a)", mapResolution)) {
+	Expression exA = mapResolution["?a"];
+	std::vector<std::map<std::string, Expression>> vecSolutions = m_wdWorld->holds(exA);
+	
+	unsigned int unIndex = solPrior.index() + 1;
+	if(vecSolutions.size() > unIndex) {
+	  solResult = Solution();
+	  solResult.bindings() = Solution::Bindings(vecSolutions[unIndex]);
+	  solResult.index() = unIndex;
+	}
+      } else if(exQueryBound.match("(holds ?goal ?state)", mapResolution)) {
+          Expression exGoal = mapResolution["?goal"];
+          Expression exState = mapResolution["?state"];
+          std::vector<Expression> exGoalAuxVec; exGoalAuxVec.clear(); exGoalAuxVec.push_back(exGoal);
+          std::vector<Expression> exStateAuxVec; exStateAuxVec.clear(); exStateAuxVec.push_back(exState);
+
+          if((solPrior.index() == -1) && (exGoal.isBound()) && (exState.isBound()))
+          {
+              bool allMatch = true;
+              std::map<std::string, Expression> bindings; bindings.clear();
+              if(exGoal.type() != Expression::List)
+                  exGoal = Expression(exGoalAuxVec);
+              if(exState.type() != Expression::List)
+                  exState = Expression(exStateAuxVec);
+
+              int maxG = exGoal.subExpressions().size();
+              int maxS = exState.subExpressions().size();
+              for(int g = 0; allMatch && (g < maxG); g++)
+              {
+                  bool found = false;
+                  for(int s = 0; (!found) && (s < maxS); s++)
+                  {
+                      std::map<std::string, Expression> newBindings; newBindings.clear();
+                      newBindings = exGoal.subExpressions()[g].resolve(exState.subExpressions()[s], found);
+                      for(int k = 0; found && (k < maxG); k++)
+                      {
+                          exGoal.subExpressions()[k] = exGoal.subExpressions()[k].parametrize(newBindings);
+                      }
+                      for(std::map<std::string, Expression>::const_iterator it = newBindings.begin();
+                          it != newBindings.end(); it++)
+                          bindings.insert(std::pair<std::string, Expression>(it->first, it->second));
+                  }
+                  allMatch = found;
+              }
+              if(allMatch)
+              {
+                  solResult = Solution();
+                  /* Should the next line be allowed through?*/
+                  //solResult.bindings() = bindings;
+                  solResult.index() = 0;
+              }
+          }
+      } else if(exQueryBound.match("(apply ?effects ?state ?newstate)", mapResolution)) {
+          Expression exEffects = mapResolution["?effects"];
+          Expression exState = mapResolution["?state"];
+          Expression exNewState = mapResolution["?newstate"];
+          std::vector<Expression> exEffectsAuxVec; exEffectsAuxVec.clear(); exEffectsAuxVec.push_back(exEffects);
+          std::vector<Expression> exStateAuxVec; exStateAuxVec.clear(); exStateAuxVec.push_back(exState);
+
+          if((solPrior.index() == -1) && (exEffects.isBound()) && (exState.isBound())
+                  && (!exNewState.isBound()))
+          {
+              if(exNewState.isWildcard())
+              {
+                  solResult = Solution();
+                  solResult.index() = 0;
+              }
+              else
+              {
+                  std::map<std::string, Expression> bindings; bindings.clear();
+
+                  if(exEffects.type() != Expression::List)
+                      exEffects = Expression(exEffectsAuxVec);
+                  if(exState.type() != Expression::List)
+                      exState = Expression(exStateAuxVec);
+
+                  int maxE = exEffects.size();
+                  for(int e = 0; e < maxE; e++)
+                  {
+                      Expression crEffect = exEffects.subExpressions()[e];
+                      Expression crNegEffect = crEffect.negate();
+                      int maxS = exState.subExpressions().size();
+                      bool found = false;
+                      for(int s = 0; (!found) && (s < maxS); s++)
+                      {
+                          std::map<std::string, Expression> bindings; bindings.clear();
+                          bindings = crEffect.resolve(exState.subExpressions()[s], found);
+                          if(found)
+                              for(int k = 0; k < maxE; k++)
+                                  exEffects.subExpressions()[k] = exEffects.subExpressions()[k].parametrize(bindings);
+                          else
+                          {
+                              bindings.clear();
+                              bool negated = false;
+                              bindings = crNegEffect.resolve(exState.subExpressions()[s], negated);
+                              if(negated)
+                              {
+                                  crEffect = crEffect.parametrize(bindings);
+                                  crNegEffect = crNegEffect.parametrize(bindings);
+                                  exState.subExpressions()[s] = Expression("");
+                                  for(int k = 0; k < maxE; k++)
+                                      exEffects.subExpressions()[k] = exEffects.subExpressions()[k].parametrize(bindings);
+                              }
+                          }
+                      }
+                      if(!found)
+                          exState.subExpressions().push_back(crEffect);
+                  }
+
+                  Expression exNewStateValue;
+                  maxE = exState.subExpressions().size();
+                  for(int e = 0; e < maxE; e++)
+                      if(exState.subExpressions()[e].toString() != "")
+                          exNewStateValue.add(exState.subExpressions()[e]);
+                  bindings.insert(std::pair<std::string, Expression>(exNewState.toString(), exNewStateValue));
+
+                  solResult = Solution();
+                  solResult.index() = 0;
+                  solResult.bindings() = bindings;
+              }
+          }
       } else {
-	solResult = this->matchLambdaPredicates(exQueryBound, solPrior, bdgBindings);
+        solResult = this->matchLambdaPredicates(exQueryBound, solPrior, bdgBindings);
       }
     }
     
@@ -525,8 +516,8 @@ namespace gdaplanner {
     
     return solResult;
   }
-  
-  Solution Prolog::matchLambdaPredicates(Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) {
+
+  Solution Prolog::matchLambdaPredicates(Expression const& exQuery, Solution const& solPrior, Solution::Bindings const& bdgBindings) {
     Solution solResult;
     solResult.setValid(false);
     
@@ -541,28 +532,28 @@ namespace gdaplanner {
     
     return solResult;
   }
-  
-  void Prolog::addLambdaPredicate(std::string strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda) {
+
+  void Prolog::addLambdaPredicate(std::string const& strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda) {
     this->addLambdaPredicate(this->makeLambdaPredicate(strPredicate, fncLambda));
   }
   
-  void Prolog::addSimpleLambdaPredicate(std::string strPredicate, std::function<void(std::map<std::string, Expression>)> fncLambda) {
+  void Prolog::addSimpleLambdaPredicate(std::string const& strPredicate, std::function<void(std::map<std::string, Expression>)> fncLambda) {
     this->addLambdaPredicate(this->makeSimpleLambdaPredicate(strPredicate, fncLambda));
   }
   
-  void Prolog::addLambdaPredicate(LambdaPredicate lpAdd) {
+  void Prolog::addLambdaPredicate(LambdaPredicate const& lpAdd) {
     m_vecLambdaPredicates.push_back(lpAdd);
   }
   
-  void Prolog::addLazyListPredicate(std::string strPredicate, std::vector<Expression> vecList) {
+  void Prolog::addLazyListPredicate(std::string const& strPredicate, std::vector<Expression> const& vecList) {
     m_vecLambdaPredicates.push_back(this->makeLazyListPredicate(strPredicate, vecList));
   }
   
-  void Prolog::addCallbackPredicate(std::string strPredicate, std::function<Expression(unsigned int)> fncLambda) {
+  void Prolog::addCallbackPredicate(std::string const& strPredicate, std::function<Expression(unsigned int)> fncLambda) {
     m_vecLambdaPredicates.push_back(this->makeCallbackPredicate(strPredicate, fncLambda));
   }
-  
-  Prolog::LambdaPredicate Prolog::makeCallbackPredicate(std::string strPredicate, std::function<Expression(unsigned int)> fncLambda) {
+
+  Prolog::LambdaPredicate Prolog::makeCallbackPredicate(std::string const& strPredicate, std::function<Expression(unsigned int)> fncLambda) {
     return [strPredicate, fncLambda](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
       Solution solResult;
       solResult.setValid(false);
@@ -587,7 +578,7 @@ namespace gdaplanner {
     };
   }
   
-  Prolog::LambdaPredicate Prolog::makeLambdaPredicate(std::string strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda) {
+  Prolog::LambdaPredicate Prolog::makeLambdaPredicate(std::string const& strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda) {
     return [strPredicate, fncLambda](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
       Solution solResult;
       solResult.setValid(false);
@@ -609,11 +600,11 @@ namespace gdaplanner {
     };
   }
   
-  Prolog::LambdaPredicate Prolog::makeSimpleLambdaPredicate(std::string strPredicate, std::function<void(std::map<std::string, Expression>)> fncLambda) {
+  Prolog::LambdaPredicate Prolog::makeSimpleLambdaPredicate(std::string const& strPredicate, std::function<void(std::map<std::string, Expression>)> fncLambda) {
     return this->makeLambdaPredicate(strPredicate, [fncLambda](std::map<std::string, Expression> mapBindings) -> bool { fncLambda(mapBindings); return true; });
   }
-  
-  Prolog::LambdaPredicate Prolog::makeLazyListPredicate(std::string strPredicate, std::vector<Expression> vecList) {
+
+  Prolog::LambdaPredicate Prolog::makeLazyListPredicate(std::string const& strPredicate, std::vector<Expression> const& vecList) {
     return [strPredicate, vecList](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
       Solution solResult;
       solResult.setValid(false);
@@ -648,7 +639,7 @@ namespace gdaplanner {
       return solResult;
     };
   }
-  
+
   void Prolog::addDefaultLambdaPredicates() {
     this->addSimpleLambdaPredicate("(print-world)", [this](std::map<std::string, Expression> mapBindings) {
 	std::cout << *m_wdWorld << std::endl;
@@ -782,8 +773,8 @@ namespace gdaplanner {
 	return solResult;
       });
   }
-  
-  void Prolog::addPredicate(std::string strPredicate, std::vector<std::string> vecElements) {
+
+  void Prolog::addPredicate(std::string const& strPredicate, std::vector<std::string> const& vecElements) {
     Expression exAnd;
     exAnd.add("and");
     

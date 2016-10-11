@@ -43,11 +43,12 @@ namespace gdaplanner {
       void state(Expression exState, Expression exPreconditions);
     
       std::vector<State::Ptr> matchingStates(Expression exMatch);    
+    
+      virtual std::string toString() const override;
       
       unsigned int actionCount();
       Action::Ptr action(unsigned int unIndex);
       
-      virtual std::string toString() const override;
     
       template<class ... Args>
 	static Context::Ptr create(Args ... args) {
