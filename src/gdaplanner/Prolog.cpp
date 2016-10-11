@@ -261,6 +261,38 @@ namespace gdaplanner {
 	    solResult.index() = 0;
 	  }
 	}
+      } else if(exQueryBound.match("(assert ?a)", mapResolution)) {
+	if(solPrior.index() == -1) {
+	  Expression exA = mapResolution["?a"];
+	  
+	  if(exA.isBound()) {
+	    m_wdWorld->assertFact(exA);
+	    
+	    solResult = Solution();
+	    solResult.index() = 0;
+	  }
+	}
+      } else if(exQueryBound.match("(retract ?a)", mapResolution)) {
+	if(solPrior.index() == -1) {
+	  Expression exA = mapResolution["?a"];
+	  
+	  if(exA.isBound()) {
+	    m_wdWorld->retractFact(exA);
+	    
+	    solResult = Solution();
+	    solResult.index() = 0;
+	  }
+	}
+      } else if(exQueryBound.match("(holds ?a)", mapResolution)) {
+	Expression exA = mapResolution["?a"];
+	std::vector<std::map<std::string, Expression>> vecSolutions = m_wdWorld->holds(exA);
+	
+	unsigned int unIndex = solPrior.index() + 1;
+	if(vecSolutions.size() > unIndex) {
+	  solResult = Solution();
+	  solResult.bindings() = Solution::Bindings(vecSolutions[unIndex]);
+	  solResult.index() = unIndex;
+	}
       }
     }
     
