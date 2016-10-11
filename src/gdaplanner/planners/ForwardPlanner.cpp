@@ -37,6 +37,15 @@ namespace gdaplanner {
       } else {
 	std::cerr << "Invalid: Actions" << std::endl;
       }
+      
+      plProlog->addPredicate("(do-something ?a ?b)",
+			     "(format \"This: ~a, ~a~%\" ?a ?b)",
+			     "(format \"This again: ~a, ~a~%\" ?a ?b)",
+			     "(member ?a ?b)",
+			     "(format \"Got through!~%\")");
+      
+      Solution solPredicate = plProlog->query("(do-something 2 (1 4 2))");
+      std::cout << solPredicate;
     }
     
     void ForwardPlanner::plan(problems::Problem::Ptr prbProblem, contexts::Context::Ptr ctxContext) {

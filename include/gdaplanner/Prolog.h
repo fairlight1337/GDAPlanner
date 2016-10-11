@@ -57,6 +57,20 @@ namespace gdaplanner {
     void addDefaultLambdaPredicates();
     
     template<class ... Args>
+      void addPredicate(std::string strPredicate, std::string strArgument, Args ... args) {
+      std::vector<std::string> vecArguments = {strArgument};
+      this->addPredicate(strPredicate, vecArguments, std::forward<Args>(args)...);
+    }
+    
+    template<class ... Args>
+      void addPredicate(std::string strPredicate, std::vector<std::string> vecArguments, std::string strArgument, Args ... args) {
+      vecArguments.push_back(strArgument);
+      this->addPredicate(strPredicate, vecArguments, std::forward<Args>(args)...);
+    }
+    
+    void addPredicate(std::string strPredicate, std::vector<std::string> vecElements);
+    
+    template<class ... Args>
       static Prolog::Ptr create(Args ... args) {
       return std::make_shared<Prolog>(std::forward<Args>(args)...);
     }

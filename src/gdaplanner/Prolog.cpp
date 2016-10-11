@@ -143,7 +143,7 @@ namespace gdaplanner {
         
 	  bool bAllOK = true;
 	
-	  size_t szSpecifier, szSpecifierOld = -2;
+	  size_t szSpecifier = 0, szSpecifierOld = -2;
 	  while(szSpecifier != std::string::npos) {
 	    szSpecifier = strFormat.find("~", szSpecifier + 1);
 	  
@@ -512,8 +512,31 @@ namespace gdaplanner {
 	
 	return solResult;
       });
+  }
+  
+  void Prolog::addPredicate(std::string strPredicate, std::vector<std::string> vecElements) {
+    Expression exAnd;
+    exAnd.add("and");
     
-    // std::vector<Expression> vecList = {Expression("some-1"), Expression("some-2"), Expression(1), Expression(2), Expression(3)};
-    // this->addLazyListPredicate("(init-predicates ?a)", vecList);
+    for(std::string strElement : vecElements) {
+      exAnd.add(Expression::parseSingle(strElement));
+    }
+    
+    m_vecLambdaPredicates.push_back([this, strPredicate, exAnd](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+	Solution solResult;
+	solResult.setValid(false);
+	
+	std::map<std::string, Expression> mapBindings;
+	
+	if(exQuery.match(strPredicate, mapBindings)) {
+	  Solution solTemp = this->unify(exAnd, solPrior, mapBindings);
+	  
+	  if(solTemp.valid()) {
+	    solResult = solTemp;
+	  }
+	}
+	
+	return solResult;
+      });
   }
 }
