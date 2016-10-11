@@ -673,6 +673,50 @@ namespace gdaplanner {
 	return mapBindings["?a"] == Expression::String;
       });
     
+    this->addLambdaPredicate("(> ?a ?b)", [this](std::map<std::string, Expression> mapBindings) {
+	Expression exA = mapBindings["?a"];
+	Expression exB = mapBindings["?b"];
+	
+	if(exA.isNumber() && exB.isNumber()) {
+	  bool bTransformed;
+	  double dA = exA.transformToDouble(bTransformed);
+	  
+	  if(bTransformed) {
+	    double dB = exB.transformToDouble(bTransformed);
+	    
+	    if(bTransformed) {
+	      if(dA > dB) {
+		return true;
+	      }
+	    }
+	  }
+	}
+	
+	return false;
+      });
+    
+    this->addLambdaPredicate("(< ?a ?b)", [this](std::map<std::string, Expression> mapBindings) {
+	Expression exA = mapBindings["?a"];
+	Expression exB = mapBindings["?b"];
+	
+	if(exA.isNumber() && exB.isNumber()) {
+	  bool bTransformed;
+	  double dA = exA.transformToDouble(bTransformed);
+	  
+	  if(bTransformed) {
+	    double dB = exB.transformToDouble(bTransformed);
+	    
+	    if(bTransformed) {
+	      if(dA < dB) {
+		return true;
+	      }
+	    }
+	  }
+	}
+	
+	return false;
+      });
+    
     this->addLambdaPredicate("(numberp ?a)", [this](std::map<std::string, Expression> mapBindings) {
 	return (mapBindings["?a"] == Expression::Float ||
 		mapBindings["?a"] == Expression::Double ||
@@ -712,7 +756,7 @@ namespace gdaplanner {
 	      
 	      if(exB.isBound()) { // We're checking the length
 		bool bTransformed;
-		unsigned int unTransformed = exB.transformTo<unsigned int>(bTransformed);
+		unsigned int unTransformed = exB.transformToUnsignedInteger(bTransformed);
 		
 		if(bTransformed) {
 		  if(unLength == unTransformed) {
