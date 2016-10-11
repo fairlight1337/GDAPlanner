@@ -655,15 +655,15 @@ namespace gdaplanner {
       });
     
     this->addLambdaPredicate("(assert ?a)", [this](std::map<std::string, Expression> mapBindings) {
-	  Expression exA = mapBindings["?a"];
+	Expression exA = mapBindings["?a"];
+	
+	if(exA.isBound()) {
+	  m_wdWorld->assertFact(exA);
 	  
-	  if(exA.isBound()) {
-	    m_wdWorld->assertFact(exA);
-	    
-	    return true;
-	  } else {
-	    return false;
-	  }
+	  return true;
+	} else {
+	  return false;
+	}
       });
     
     this->addLambdaPredicate("(true)", [this](std::map<std::string, Expression> mapBindings) {
@@ -672,6 +672,21 @@ namespace gdaplanner {
     
     this->addLambdaPredicate("(false)", [this](std::map<std::string, Expression> mapBindings) {
 	return false;
+      });
+    
+    this->addLambdaPredicate("(listp ?a)", [this](std::map<std::string, Expression> mapBindings) {
+	return mapBindings["?a"] == Expression::List;
+      });
+    
+    this->addLambdaPredicate("(stringp ?a)", [this](std::map<std::string, Expression> mapBindings) {
+	return mapBindings["?a"] == Expression::String;
+      });
+    
+    this->addLambdaPredicate("(numberp ?a)", [this](std::map<std::string, Expression> mapBindings) {
+	return (mapBindings["?a"] == Expression::Float ||
+		mapBindings["?a"] == Expression::Double ||
+		mapBindings["?a"] == Expression::Integer ||
+		mapBindings["?a"] == Expression::UnsignedInteger);
       });
     
     this->addLambdaPredicate("(retract ?a)", [this](std::map<std::string, Expression> mapBindings) {
