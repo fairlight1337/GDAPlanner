@@ -425,6 +425,117 @@ namespace gdaplanner {
 	  solResult.bindings() = Solution::Bindings(vecSolutions[unIndex]);
 	  solResult.index() = unIndex;
 	}
+      } else if(exQueryBound.match("(holds ?goal ?state)", mapResolution)) {
+          Expression exGoal = mapResolution["?goal"];
+          Expression exState = mapResolution["?state"];
+          std::vector<Expression> exGoalAuxVec; exGoalAuxVec.clear(); exGoalAuxVec.push_back(exGoal);
+          std::vector<Expression> exStateAuxVec; exStateAuxVec.clear(); exStateAuxVec.push_back(exState);
+
+          if((solPrior.index() == -1) && (exGoal.isBound()) && (exState.isBound()))
+          {
+              bool allMatch = true;
+              std::map<std::string, Expression> bindings; bindings.clear();
+              if(exGoal.type() != Expression::List)
+                  exGoal = Expression(exGoalAuxVec);
+              if(exState.type() != Expression::List)
+                  exState = Expression(exStateAuxVec);
+
+              int maxG = exGoal.subExpressions().size();
+              int maxS = exState.subExpressions().size();
+              for(int g = 0; allMatch && (g < maxG); g++)
+              {
+                  bool found = false;
+                  for(int s = 0; (!found) && (s < maxS); s++)
+                  {
+                      std::map<std::string, Expression> newBindings; newBindings.clear();
+                      newBindings = exGoal.subExpressions()[g].resolve(exState.subExpressions()[s], found);
+                      for(int k = 0; found && (k < maxG); k++)
+                      {
+                          exGoal.subExpressions()[k] = exGoal.subExpressions()[k].parametrize(newBindings);
+                      }
+                      for(std::map<std::string, Expression>::const_iterator it = newBindings.begin();
+                          it != newBindings.end(); it++)
+                          bindings.insert(std::pair<std::string, Expression>(it->first, it->second));
+                  }
+                  allMatch = found;
+              }
+              if(allMatch)
+              {
+                  solResult = Solution();
+                  /* Should the next line be allowed through?*/
+                  //solResult.bindings() = bindings;
+                  solResult.index() = 0;
+              }
+          }
+      } else if(exQueryBound.match("(apply ?effects ?state ?newstate)", mapResolution)) {
+          Expression exEffects = mapResolution["?effects"];
+          Expression exState = mapResolution["?state"];
+          Expression exNewState = mapResolution["?newstate"];
+          std::vector<Expression> exEffectsAuxVec; exEffectsAuxVec.clear(); exEffectsAuxVec.push_back(exEffects);
+          std::vector<Expression> exStateAuxVec; exStateAuxVec.clear(); exStateAuxVec.push_back(exState);
+
+          if((solPrior.index() == -1) && (exEffects.isBound()) && (exState.isBound())
+                  && (!exNewState.isBound()))
+          {
+              if(exNewState.isWildcard())
+              {
+                  solResult = Solution();
+                  solResult.index() = 0;
+              }
+              else
+              {
+                  std::map<std::string, Expression> bindings; bindings.clear();
+
+                  if(exEffects.type() != Expression::List)
+                      exEffects = Expression(exEffectsAuxVec);
+                  if(exState.type() != Expression::List)
+                      exState = Expression(exStateAuxVec);
+
+                  int maxE = exEffects.size();
+                  for(int e = 0; e < maxE; e++)
+                  {
+                      Expression crEffect = exEffects.subExpressions()[e];
+                      Expression crNegEffect = crEffect.negate();
+                      int maxS = exState.subExpressions().size();
+                      bool found = false;
+                      for(int s = 0; (!found) && (s < maxS); s++)
+                      {
+                          std::map<std::string, Expression> bindings; bindings.clear();
+                          bindings = crEffect.resolve(exState.subExpressions()[s], found);
+                          if(found)
+                              for(int k = 0; k < maxE; k++)
+                                  exEffects.subExpressions()[k] = exEffects.subExpressions()[k].parametrize(bindings);
+                          else
+                          {
+                              bindings.clear();
+                              bool negated = false;
+                              bindings = crNegEffect.resolve(exState.subExpressions()[s], negated);
+                              if(negated)
+                              {
+                                  crEffect = crEffect.parametrize(bindings);
+                                  crNegEffect = crNegEffect.parametrize(bindings);
+                                  exState.subExpressions()[s] = Expression("");
+                                  for(int k = 0; k < maxE; k++)
+                                      exEffects.subExpressions()[k] = exEffects.subExpressions()[k].parametrize(bindings);
+                              }
+                          }
+                      }
+                      if(!found)
+                          exState.subExpressions().push_back(crEffect);
+                  }
+
+                  Expression exNewStateValue("");
+                  maxE = exState.subExpressions().size();
+                  for(int e = 0; e < maxE; e++)
+                      if(exState.subExpressions()[e].toString() != "")
+                          exNewStateValue.subExpressions().push_back(exState.subExpressions()[e]);
+                  bindings.insert(std::pair<std::string, Expression>(exNewState.toString(), exNewStateValue));
+
+                  solResult = Solution();
+                  solResult.index() = 0;
+                  solResult.bindings() = bindings;
+              }
+          }
       } else if(exQueryBound.match("(print-world)", mapResolution)) {
 	if(solPrior.index() == -1) {
 	  std::cout << *m_wdWorld << std::endl;
