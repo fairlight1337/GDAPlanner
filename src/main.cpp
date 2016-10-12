@@ -7,7 +7,7 @@
 using namespace gdaplanner;
 
 
-int main(int argc, char** argv) {
+int main(__attribute__((unused)) int argc, __attribute__((unused)) char** argv) {
   int nReturnvalue = EXIT_SUCCESS;
   
   GDAPlanner::Ptr gdapPlanner = GDAPlanner::create();

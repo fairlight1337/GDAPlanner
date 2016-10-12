@@ -360,8 +360,6 @@ namespace gdaplanner {
     bResolved = false;
       
     if(m_tpType == exOther.type()) {
-      bool bAllEqual = true;
-	
       switch(m_tpType) {
       case String: {
 	std::string strA = this->get<std::string>();
@@ -633,7 +631,7 @@ namespace gdaplanner {
   }
     
   bool Expression::isNumber() {
-    return m_tpType == Float || m_tpType == Double || m_tpType == Integer | m_tpType == UnsignedInteger;
+    return (m_tpType == Float) || (m_tpType == Double) || (m_tpType == Integer) || (m_tpType == UnsignedInteger);
   }
     
   unsigned int Expression::transformToUnsignedInteger(bool& bTransformed) {
@@ -720,7 +718,7 @@ namespace gdaplanner {
     return dValue;
   }
   
-  bool Expression::parseAssertStringValue(std::string strValue) {
+  void Expression::parseAssertStringValue(std::string strValue) {
     // Check for floating point first; we resort to double rather than
     // float per default. If we don't detect a decimal dot, we use
     // integer.
