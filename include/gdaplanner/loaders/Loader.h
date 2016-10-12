@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __LOADER_H__
 #define __LOADER_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 #include <string>
 #include <fstream>
 

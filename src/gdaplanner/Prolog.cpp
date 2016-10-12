@@ -1,4 +1,5 @@
 #include <gdaplanner/Prolog.h>
+#include <iostream>
 
 
 namespace gdaplanner {
@@ -23,6 +24,11 @@ namespace gdaplanner {
     
     if(exQuery.type() == Expression::List) {
       if(!wdWorld) {
+	if(!m_wdWorld) {
+	  // Default: Create a World object if none exists
+	  m_wdWorld = World::create();
+	}
+	
 	wdWorld = m_wdWorld;
       }
       
@@ -667,7 +673,11 @@ namespace gdaplanner {
 
   void Prolog::addDefaultLambdaPredicates() {
     this->addSimpleLambdaPredicate("(print-world)", [this](std::map<std::string, Expression> mapBindings) {
-	std::cout << *m_wdWorld << std::endl;
+	if(m_wdWorld) {
+	  std::cout << *m_wdWorld << std::endl;
+	} else {
+	  std::cerr << "Error: No world object defined." << std::endl;
+	}
       });
     
     this->addLambdaPredicate("(assert ?a)", [this](std::map<std::string, Expression> mapBindings) {

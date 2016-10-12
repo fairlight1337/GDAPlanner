@@ -1,4 +1,5 @@
 #include <gdaplanner/problems/Problem.h>
+#include <iostream>
 
 
 namespace gdaplanner {

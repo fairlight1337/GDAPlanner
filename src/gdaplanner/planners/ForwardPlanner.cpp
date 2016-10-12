@@ -1,4 +1,5 @@
 #include <gdaplanner/planners/ForwardPlanner.h>
+#include <iostream>
 
 
 namespace gdaplanner {

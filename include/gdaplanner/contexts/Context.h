@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __CONTEXT_H__
 #define __CONTEXT_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 #include <string>
 #include <vector>
 #include <deque>
@@ -14,6 +15,9 @@
 #include <gdaplanner/State.h>
 #include <gdaplanner/Expression.h>
 #include <gdaplanner/Printable.h>
+
+
+extern template class std::vector<gdaplanner::Expression>;
 
 
 namespace gdaplanner {

@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __GDAPLANNER_H__
 #define __GDAPLANNER_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 #include <deque>
 #include <fstream>
 #include <streambuf>

@@ -1,4 +1,5 @@
 #include <gdaplanner/Declaration.h>
+#include <iostream>
 
 
 namespace gdaplanner {

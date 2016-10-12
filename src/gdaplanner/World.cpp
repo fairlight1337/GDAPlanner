@@ -1,4 +1,5 @@
 #include <gdaplanner/World.h>
+#include <iostream>
 
 
 namespace gdaplanner {
