@@ -1,4 +1,5 @@
 #include <gdaplanner/Prolog.h>
+#include <iostream>
 
 
 namespace gdaplanner {

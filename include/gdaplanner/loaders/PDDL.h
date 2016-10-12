@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __LOADERS_PDDL_H__
 #define __LOADERS_PDDL_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 
 #include <gdaplanner/loaders/Loader.h>
 #include <gdaplanner/contexts/PDDL.h>

@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __WORLD_H__
 #define __WORLD_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 #include <list>
 
 #include <gdaplanner/Expression.h>

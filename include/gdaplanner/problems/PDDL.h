@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __PDDL_H__
 #define __PDDL_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 #include <string>
 #include <vector>
 

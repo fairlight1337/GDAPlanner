@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __PROBLEM_H__
 #define __PROBLEM_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 
 #include <gdaplanner/Printable.h>
 

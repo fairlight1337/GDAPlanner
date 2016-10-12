@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __EXPRESSION_H__
 #define __EXPRESSION_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 #include <vector>
 #include <sstream>
 #include <map>

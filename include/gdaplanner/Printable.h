@@ -1,8 +1,9 @@
+#pragma once
 #ifndef __PRINTABLE_H__
 #define __PRINTABLE_H__
 
 
-#include <iostream>
+#include <iosfwd>
 #include <string>
 #include <memory>
 

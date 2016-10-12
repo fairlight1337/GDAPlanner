@@ -1,4 +1,5 @@
 #include <gdaplanner/Expression.h>
+#include <iostream>
 
 
 namespace gdaplanner {

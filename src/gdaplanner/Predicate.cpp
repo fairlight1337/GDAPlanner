@@ -1,4 +1,5 @@
 #include <gdaplanner/Predicate.h>
+#include <iostream>
 
 
 namespace gdaplanner {

@@ -1,4 +1,5 @@
 #include <gdaplanner/Printable.h>
+#include <iostream>
 
 
 namespace gdaplanner {

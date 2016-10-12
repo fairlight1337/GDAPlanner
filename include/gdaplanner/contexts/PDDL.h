@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __CONTEXTS_PDDL_H__
 #define __CONTEXTS_PDDL_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 #include <algorithm>
 
 #include <gdaplanner/contexts/StatefulContext.h>

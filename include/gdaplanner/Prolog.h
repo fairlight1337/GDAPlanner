@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __PROLOG_H__
 #define __PROLOG_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 #include <map>
 #include <vector>
 #include <deque>

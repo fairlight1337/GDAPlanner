@@ -1,4 +1,5 @@
 #include <gdaplanner/Alias.h>
+#include <iostream>
 
 
 namespace gdaplanner {
