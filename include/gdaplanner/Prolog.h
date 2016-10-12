@@ -1,18 +1,25 @@
+#pragma once
 #ifndef __PROLOG_H__
 #define __PROLOG_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 #include <map>
 #include <vector>
 #include <deque>
 #include <functional>
+#include <fstream>
+#include <streambuf>
+#include <unistd.h>
 
 #include <gdaplanner/World.h>
 #include <gdaplanner/Expression.h>
 #include <gdaplanner/Printable.h>
 #include <gdaplanner/Solution.h>
+
+
+extern template class std::vector<gdaplanner::Expression>;
 
 
 namespace gdaplanner {
@@ -69,6 +76,13 @@ namespace gdaplanner {
     }
     
     void addPredicate(std::string const& strPredicate, std::vector<std::string> const& vecElements);
+    
+    void addPredicate(Expression const& exPredicate, std::vector<Expression> const& vecElements);
+    
+    bool loadFile(std::string strFilepath);
+    
+    std::string getProgramDirectory();
+    bool loadStandardLibrary();
     
     template<class ... Args>
       static Prolog::Ptr create(Args ... args) {

@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __PLANNER_H__
 #define __PLANNER_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 
 #include <gdaplanner/contexts/Context.h>
 #include <gdaplanner/contexts/StatefulContext.h>

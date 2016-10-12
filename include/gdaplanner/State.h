@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __STATE_H__
 #define __STATE_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 
 #include <gdaplanner/Expression.h>
 #include <gdaplanner/Printable.h>

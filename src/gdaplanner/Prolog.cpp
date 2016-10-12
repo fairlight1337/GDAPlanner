@@ -1,4 +1,5 @@
 #include <gdaplanner/Prolog.h>
+#include <iostream>
 
 
 namespace gdaplanner {
@@ -23,6 +24,11 @@ namespace gdaplanner {
     
     if(exQuery.type() == Expression::List) {
       if(!wdWorld) {
+	if(!m_wdWorld) {
+	  // Default: Create a World object if none exists
+	  m_wdWorld = World::create();
+	}
+	
 	wdWorld = m_wdWorld;
       }
       
@@ -45,54 +51,56 @@ namespace gdaplanner {
     Expression exQueryBound = exQuery.parametrize(bdgBindings.bindings());
     
     if(exQueryBound.predicateName() == "and") {
-      exQueryBound.popFront();
-      std::deque<Solution> dqSolutionStack;
+      if(exQueryBound.size() > 1) { // Otherwise it loops indefinitely.
+	exQueryBound.popFront();
+	std::deque<Solution> dqSolutionStack;
       
-      if(solPrior.index() > -1) {
-	for(Solution solSub : solPrior.subSolutions()) {
-	  dqSolutionStack.push_back(solSub);
-	}
+	if(solPrior.index() > -1) {
+	  for(Solution solSub : solPrior.subSolutions()) {
+	    dqSolutionStack.push_back(solSub);
+	  }
 	
-	if(dqSolutionStack.size() > 0) {
-	  dqSolutionStack.pop_back();
-	}
-      }
-      
-      while(dqSolutionStack.size() < exQueryBound.size()) {
-	unsigned int unIndex = dqSolutionStack.size();
-	Expression exOperand = exQueryBound[unIndex];
-	Solution solOperand;
-	
-	try {
-	  solOperand = this->unify(exOperand,
-				   solPrior.subSolution(unIndex),
-				   (unIndex > 0 ? dqSolutionStack.back().finalBindings() : bdgBindings));
-	} catch(SolutionsExhausted seException) {
-	  solOperand.setValid(false);
-	}
-	
-	solPrior.subSolution(unIndex) = solOperand;
-	
-	if(solOperand.valid()) {
-	  dqSolutionStack.push_back(solOperand);
-	} else {
 	  if(dqSolutionStack.size() > 0) {
 	    dqSolutionStack.pop_back();
-	    
-	    for(unsigned int unI = unIndex; unI < solPrior.subSolutions().size(); ++unI) {
-	      solPrior.subSolution(unI).resetIndices();
-	    }
-	  } else {
-	    throw SolutionsExhausted();
 	  }
 	}
-      }
       
-      solResult = Solution();
-      solResult.index() = solPrior.index() + 1;
+	while(dqSolutionStack.size() < exQueryBound.size()) {
+	  unsigned int unIndex = dqSolutionStack.size();
+	  Expression exOperand = exQueryBound[unIndex];
+	  Solution solOperand;
+	
+	  try {
+	    solOperand = this->unify(exOperand,
+				     solPrior.subSolution(unIndex),
+				     (unIndex > 0 ? dqSolutionStack.back().finalBindings() : bdgBindings));
+	  } catch(SolutionsExhausted seException) {
+	    solOperand.setValid(false);
+	  }
+	
+	  solPrior.subSolution(unIndex) = solOperand;
+	
+	  if(solOperand.valid()) {
+	    dqSolutionStack.push_back(solOperand);
+	  } else {
+	    if(dqSolutionStack.size() > 0) {
+	      dqSolutionStack.pop_back();
+	    
+	      for(unsigned int unI = unIndex; unI < solPrior.subSolutions().size(); ++unI) {
+		solPrior.subSolution(unI).resetIndices();
+	      }
+	    } else {
+	      throw SolutionsExhausted();
+	    }
+	  }
+	}
       
-      for(Solution solSub : dqSolutionStack) {
-	solResult.addSubSolution(solSub);
+	solResult = Solution();
+	solResult.index() = solPrior.index() + 1;
+      
+	for(Solution solSub : dqSolutionStack) {
+	  solResult.addSubSolution(solSub);
+	}
       }
     } else if(exQueryBound.predicateName() == "or") {
       exQueryBound.popFront();
@@ -169,7 +177,7 @@ namespace gdaplanner {
 		  
 		    exFormat.popFront();
 		  } else {
-		    std::cerr << "Error: Too manh format specifiers for the arguments given in '" << exQueryBound << "'." << std::endl;
+		    std::cerr << "Error: Too many format specifiers for the arguments given in '" << exQueryBound << "'." << std::endl;
 		    bAllOK = false;
 		  }
 		} break;
@@ -202,6 +210,31 @@ namespace gdaplanner {
 	  }
 	} else {
 	  std::cerr << "Error: No format string specified in '" << exQueryBound << "'." << std::endl;
+	}
+      }
+    } else if(exQueryBound.predicateName() == "<-") {
+      exQueryBound.popFront();
+      
+      if(exQueryBound.size() >= 2) {
+	if(solPrior.index() == -1) {
+	  Expression exPredicate = exQueryBound[0];
+	  exQueryBound.popFront();
+	  
+	  this->addPredicate(exPredicate, exQueryBound.subExpressions());
+	  
+	  solResult = Solution();
+	  solResult.index() = 0;
+	}
+      }
+    } else if(exQueryBound.predicateName() == "load") {
+      if(exQueryBound.size() == 2) {
+	if(solPrior.index() == -1) {
+	  if(exQueryBound[1] == Expression::String) {
+	    if(this->loadFile(exQueryBound[1].get<std::string>())) {
+	      solResult = Solution();
+	      solResult.index() = 0;
+	    }
+	  }
 	}
       }
     } else {
@@ -243,21 +276,37 @@ namespace gdaplanner {
 	  }
 	}
       } else if(exQueryBound.match("(not ?a)", mapResolution)) {
-          if(solPrior.index() == -1) {
-            Expression exA = mapResolution["?a"];
-            Solution solTemp;
+	if(solPrior.index() == -1) {
+	  Expression exA = mapResolution["?a"];
+	  Solution solTemp;
 
-              try {
-                solTemp = this->unify(exA, solPrior, bdgBindings);
-              } catch(SolutionsExhausted seException) {
-                solTemp.setValid(false);
-              }
-
-              if(!solTemp.valid()) {
-                solResult = Solution();
-                solResult.index() = 0;
-              }
-            }
+	  try {
+	    solTemp = this->unify(exA, solPrior, bdgBindings);
+	  } catch(SolutionsExhausted seException) {
+	    solTemp.setValid(false);
+	  }
+	  
+	  if(!solTemp.valid()) {
+	    solResult = Solution();
+	    solResult.index() = 0;
+	  }
+	}
+      } else if(exQueryBound.match("(once ?a)", mapResolution)) {
+	if(solPrior.index() == -1) {
+	  Expression exA = mapResolution["?a"];
+	  Solution solTemp;
+	  
+	  try {
+	    solTemp = this->unify(exA, solPrior, bdgBindings);
+	  } catch(SolutionsExhausted seException) {
+	    solTemp.setValid(false);
+	  }
+	  
+	  if(solTemp.valid()) {
+	    solResult = solTemp;
+	    solResult.index() = 0;
+	  }
+	}
       } else if(exQueryBound.match("(1- ?value ?newvalue)", mapResolution)) {
           Expression exValue = mapResolution["?value"];
           Expression exNewValue = mapResolution["?newvalue"];
@@ -642,7 +691,11 @@ namespace gdaplanner {
 
   void Prolog::addDefaultLambdaPredicates() {
     this->addSimpleLambdaPredicate("(print-world)", [this](std::map<std::string, Expression> mapBindings) {
-	std::cout << *m_wdWorld << std::endl;
+	if(m_wdWorld) {
+	  std::cout << *m_wdWorld << std::endl;
+	} else {
+	  std::cerr << "Error: No world object defined." << std::endl;
+	}
       });
     
     this->addLambdaPredicate("(assert ?a)", [this](std::map<std::string, Expression> mapBindings) {
@@ -671,6 +724,50 @@ namespace gdaplanner {
     
     this->addLambdaPredicate("(stringp ?a)", [this](std::map<std::string, Expression> mapBindings) {
 	return mapBindings["?a"] == Expression::String;
+      });
+    
+    this->addLambdaPredicate("(> ?a ?b)", [this](std::map<std::string, Expression> mapBindings) {
+	Expression exA = mapBindings["?a"];
+	Expression exB = mapBindings["?b"];
+	
+	if(exA.isNumber() && exB.isNumber()) {
+	  bool bTransformed;
+	  double dA = exA.transformToDouble(bTransformed);
+	  
+	  if(bTransformed) {
+	    double dB = exB.transformToDouble(bTransformed);
+	    
+	    if(bTransformed) {
+	      if(dA > dB) {
+		return true;
+	      }
+	    }
+	  }
+	}
+	
+	return false;
+      });
+    
+    this->addLambdaPredicate("(< ?a ?b)", [this](std::map<std::string, Expression> mapBindings) {
+	Expression exA = mapBindings["?a"];
+	Expression exB = mapBindings["?b"];
+	
+	if(exA.isNumber() && exB.isNumber()) {
+	  bool bTransformed;
+	  double dA = exA.transformToDouble(bTransformed);
+	  
+	  if(bTransformed) {
+	    double dB = exB.transformToDouble(bTransformed);
+	    
+	    if(bTransformed) {
+	      if(dA < dB) {
+		return true;
+	      }
+	    }
+	  }
+	}
+	
+	return false;
       });
     
     this->addLambdaPredicate("(numberp ?a)", [this](std::map<std::string, Expression> mapBindings) {
@@ -712,7 +809,7 @@ namespace gdaplanner {
 	      
 	      if(exB.isBound()) { // We're checking the length
 		bool bTransformed;
-		unsigned int unTransformed = exB.transformTo<unsigned int>(bTransformed);
+		unsigned int unTransformed = exB.transformToUnsignedInteger(bTransformed);
 		
 		if(bTransformed) {
 		  if(unLength == unTransformed) {
@@ -798,5 +895,61 @@ namespace gdaplanner {
 	
 	return solResult;
       });
+  }
+  
+  void Prolog::addPredicate(Expression const& exPredicate, std::vector<Expression> const& vecElements) {
+    Expression exAnd;
+    exAnd.add("and");
+    
+    for(Expression exElement : vecElements) {
+      exAnd.add(exElement);
+    }
+    
+    m_vecLambdaPredicates.push_back([this, exPredicate, exAnd](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+	Solution solResult;
+	solResult.setValid(false);
+	
+	std::map<std::string, Expression> mapBindings;
+	
+	if(exQuery.matchEx(exPredicate, mapBindings)) {
+	  Solution solTemp = this->unify(exAnd, solPrior, mapBindings);
+	  
+	  if(solTemp.valid()) {
+	    solResult = solTemp;
+	  }
+	}
+	
+	return solResult;
+      });
+  }
+  
+  bool Prolog::loadFile(std::string strFilepath) {
+    std::ifstream ifFile(strFilepath, std::ios::in);
+    
+    if(ifFile.good()) {
+      std::string strContent((std::istreambuf_iterator<char>(ifFile)),
+			     std::istreambuf_iterator<char>());
+      
+      std::vector<Expression> vecExpressions = Expression::parseString(strContent);
+      
+      for(Expression exLoaded : vecExpressions) {
+	Solution solTemp = this->unify(exLoaded);
+      }
+      
+      return true;
+    }
+    
+    return false;
+  }
+  
+  std::string Prolog::getProgramDirectory() {
+    char arrcResult[1024];
+    ssize_t szCount = readlink("/proc/self/exe", arrcResult, 1024);
+    
+    return std::string(arrcResult, (szCount > 0) ? szCount : 0);
+  }
+  
+  bool Prolog::loadStandardLibrary() {
+    return this->loadFile("../data/lib/std/main.plg");
   }
 }

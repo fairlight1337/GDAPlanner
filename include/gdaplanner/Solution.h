@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __SOLUTION_H__
 #define __SOLUTION_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 #include <map>
 #include <vector>
 #include <string>

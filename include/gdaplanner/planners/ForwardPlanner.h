@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __FORWARDPLANNER_H__
 #define __FORWARDPLANNER_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 
 #include <gdaplanner/Planner.h>
 #include <gdaplanner/contexts/PDDL.h>

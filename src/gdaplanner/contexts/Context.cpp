@@ -1,4 +1,5 @@
 #include <gdaplanner/contexts/Context.h>
+#include <iostream>
 
 
 namespace gdaplanner {

@@ -1,4 +1,5 @@
 #include <gdaplanner/contexts/StatefulContext.h>
+#include <iostream>
 
 
 namespace gdaplanner {
