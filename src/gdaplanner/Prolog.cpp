@@ -613,11 +613,36 @@ namespace gdaplanner {
     Solution solResult;
     solResult.setValid(false);
     
+    Expression const exQuerySanitized = ((Expression&)exQuery).sanitize("_");
+    Solution::Bindings bdgSane =  ((Solution::Bindings)bdgBindings).sanitize("_");
+    
     for(LambdaPredicate lpPredicate : m_vecLambdaPredicates) {
-      Solution solTemp = lpPredicate(exQuery, solPrior, bdgBindings);
+      Solution solTemp = lpPredicate(exQuerySanitized, solPrior, bdgSane);
       
       if(solTemp.valid()) {
+	std::vector<std::string> vecVariables;
+	exQuery.getVarNames(vecVariables);
+	
+	std::map<std::string, Expression> mapBindings = solTemp.finalBindings();
+	Solution::Bindings b = Solution::Bindings(mapBindings);
+	
+	std::map<std::string, Expression> mapBindingsClean;
+	for(std::string strVar : vecVariables) {
+	  std::string strVarSane = strVar + "_";
+	  
+	  if(mapBindings.find(strVar) != mapBindings.end()) {
+	    mapBindingsClean[strVar] = mapBindings[mapBindings[strVarSane].get<std::string>()];
+	  }
+	}
+	
+	Solution::Bindings bdgFinal = bdgSane.desanitize("_");
+	for(std::string strVar : vecVariables) {
+	  bdgFinal[strVar] = mapBindings[mapBindings[strVar + "_"].get<std::string>()];
+	}
+	
 	solResult = solTemp;
+	solResult.setBindings(bdgFinal);
+	
 	break;
       }
     }
