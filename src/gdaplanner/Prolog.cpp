@@ -51,54 +51,56 @@ namespace gdaplanner {
     Expression exQueryBound = exQuery.parametrize(bdgBindings.bindings());
     
     if(exQueryBound.predicateName() == "and") {
-      exQueryBound.popFront();
-      std::deque<Solution> dqSolutionStack;
+      if(exQueryBound.size() > 1) { // Otherwise it loops indefinitely.
+	exQueryBound.popFront();
+	std::deque<Solution> dqSolutionStack;
       
-      if(solPrior.index() > -1) {
-	for(Solution solSub : solPrior.subSolutions()) {
-	  dqSolutionStack.push_back(solSub);
-	}
+	if(solPrior.index() > -1) {
+	  for(Solution solSub : solPrior.subSolutions()) {
+	    dqSolutionStack.push_back(solSub);
+	  }
 	
-	if(dqSolutionStack.size() > 0) {
-	  dqSolutionStack.pop_back();
-	}
-      }
-      
-      while(dqSolutionStack.size() < exQueryBound.size()) {
-	unsigned int unIndex = dqSolutionStack.size();
-	Expression exOperand = exQueryBound[unIndex];
-	Solution solOperand;
-	
-	try {
-	  solOperand = this->unify(exOperand,
-				   solPrior.subSolution(unIndex),
-				   (unIndex > 0 ? dqSolutionStack.back().finalBindings() : bdgBindings));
-	} catch(SolutionsExhausted seException) {
-	  solOperand.setValid(false);
-	}
-	
-	solPrior.subSolution(unIndex) = solOperand;
-	
-	if(solOperand.valid()) {
-	  dqSolutionStack.push_back(solOperand);
-	} else {
 	  if(dqSolutionStack.size() > 0) {
 	    dqSolutionStack.pop_back();
-	    
-	    for(unsigned int unI = unIndex; unI < solPrior.subSolutions().size(); ++unI) {
-	      solPrior.subSolution(unI).resetIndices();
-	    }
-	  } else {
-	    throw SolutionsExhausted();
 	  }
 	}
-      }
       
-      solResult = Solution();
-      solResult.index() = solPrior.index() + 1;
+	while(dqSolutionStack.size() < exQueryBound.size()) {
+	  unsigned int unIndex = dqSolutionStack.size();
+	  Expression exOperand = exQueryBound[unIndex];
+	  Solution solOperand;
+	
+	  try {
+	    solOperand = this->unify(exOperand,
+				     solPrior.subSolution(unIndex),
+				     (unIndex > 0 ? dqSolutionStack.back().finalBindings() : bdgBindings));
+	  } catch(SolutionsExhausted seException) {
+	    solOperand.setValid(false);
+	  }
+	
+	  solPrior.subSolution(unIndex) = solOperand;
+	
+	  if(solOperand.valid()) {
+	    dqSolutionStack.push_back(solOperand);
+	  } else {
+	    if(dqSolutionStack.size() > 0) {
+	      dqSolutionStack.pop_back();
+	    
+	      for(unsigned int unI = unIndex; unI < solPrior.subSolutions().size(); ++unI) {
+		solPrior.subSolution(unI).resetIndices();
+	      }
+	    } else {
+	      throw SolutionsExhausted();
+	    }
+	  }
+	}
       
-      for(Solution solSub : dqSolutionStack) {
-	solResult.addSubSolution(solSub);
+	solResult = Solution();
+	solResult.index() = solPrior.index() + 1;
+      
+	for(Solution solSub : dqSolutionStack) {
+	  solResult.addSubSolution(solSub);
+	}
       }
     } else if(exQueryBound.predicateName() == "or") {
       exQueryBound.popFront();
@@ -274,21 +276,37 @@ namespace gdaplanner {
 	  }
 	}
       } else if(exQueryBound.match("(not ?a)", mapResolution)) {
-          if(solPrior.index() == -1) {
-            Expression exA = mapResolution["?a"];
-            Solution solTemp;
+	if(solPrior.index() == -1) {
+	  Expression exA = mapResolution["?a"];
+	  Solution solTemp;
 
-              try {
-                solTemp = this->unify(exA, solPrior, bdgBindings);
-              } catch(SolutionsExhausted seException) {
-                solTemp.setValid(false);
-              }
-
-              if(!solTemp.valid()) {
-                solResult = Solution();
-                solResult.index() = 0;
-              }
-            }
+	  try {
+	    solTemp = this->unify(exA, solPrior, bdgBindings);
+	  } catch(SolutionsExhausted seException) {
+	    solTemp.setValid(false);
+	  }
+	  
+	  if(!solTemp.valid()) {
+	    solResult = Solution();
+	    solResult.index() = 0;
+	  }
+	}
+      } else if(exQueryBound.match("(once ?a)", mapResolution)) {
+	if(solPrior.index() == -1) {
+	  Expression exA = mapResolution["?a"];
+	  Solution solTemp;
+	  
+	  try {
+	    solTemp = this->unify(exA, solPrior, bdgBindings);
+	  } catch(SolutionsExhausted seException) {
+	    solTemp.setValid(false);
+	  }
+	  
+	  if(solTemp.valid()) {
+	    solResult = solTemp;
+	    solResult.index() = 0;
+	  }
+	}
       } else if(exQueryBound.match("(1- ?value ?newvalue)", mapResolution)) {
           Expression exValue = mapResolution["?value"];
           Expression exNewValue = mapResolution["?newvalue"];
