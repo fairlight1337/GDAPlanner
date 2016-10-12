@@ -10,6 +10,9 @@
 #include <gdaplanner/Printable.h>
 
 
+extern template class std::vector<gdaplanner::Expression>;
+
+
 namespace gdaplanner {
   /** \brief Class representing a predicate Alias
       

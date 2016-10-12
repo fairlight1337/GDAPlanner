@@ -499,6 +499,9 @@ namespace gdaplanner {
 }
 
 
+template class std::vector<gdaplanner::Expression>;
+
+
 namespace std {
   template<> struct hash<gdaplanner::Expression> {
     size_t operator()(gdaplanner::Expression const& exHash) const {

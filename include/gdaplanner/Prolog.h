@@ -19,6 +19,9 @@
 #include <gdaplanner/Solution.h>
 
 
+extern template class std::vector<gdaplanner::Expression>;
+
+
 namespace gdaplanner {
   class SolutionsExhausted : std::exception {
   public:

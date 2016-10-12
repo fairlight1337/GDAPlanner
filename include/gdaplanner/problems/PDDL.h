@@ -12,6 +12,9 @@
 #include <gdaplanner/Expression.h>
 
 
+extern template class std::vector<gdaplanner::Expression>;
+
+
 namespace gdaplanner {
   namespace problems {
     /** \brief PDDL planning problem definition */

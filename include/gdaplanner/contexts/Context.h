@@ -17,6 +17,9 @@
 #include <gdaplanner/Printable.h>
 
 
+extern template class std::vector<gdaplanner::Expression>;
+
+
 namespace gdaplanner {
   namespace contexts {
     class Context : public Printable {
