@@ -43,14 +43,14 @@ namespace gdaplanner {
 
   std::string expVec2ConjString(std::vector<Expression> const& expVec)
   {
-      int maxK = expVec.size();
+      unsigned int maxK = expVec.size();
 
       if(0 == maxK)
           return std::string("()");
       if(1 == maxK)
           return expVec[0].toString();
       std::string retq; retq = "(and ";
-      for(int k = 0; k < maxK; k++)
+      for(unsigned int k = 0; k < maxK; k++)
           if("()" != expVec[k].toString())
               retq += (expVec[k].toString() + " ");
       retq += ")";
@@ -66,8 +66,8 @@ namespace gdaplanner {
       std::string decStr = std::to_string(idx);
 
       exp.getVarNames(varNames);
-      int maxK = varNames.size();
-      for(int k = 0; k < maxK; k++)
+      unsigned int maxK = varNames.size();
+      for(unsigned int k = 0; k < maxK; k++)
           newNames.insert(std::pair<std::string, Expression>(varNames[k], Expression::parseString(varNames[k] + decStr)[0]));
       return expCp.parametrize(newNames);
   }
@@ -79,14 +79,14 @@ namespace gdaplanner {
       Predicate::Ptr predicatePtr;
 
       std::cout << "MATCHACTION\nPrototypes:\n";
-      for(int k = 0; k < prototypes.size(); k++)
+      for(unsigned int k = 0; k < prototypes.size(); k++)
           std::cout << "  " << prototypes[k].m_pdPredicate->expression().toString().c_str() << " := " << prototypes[k].preconditions().toString().c_str() << "  " << prototypes[k].effects().toString().c_str() << "\n";
       std::cout << "Expression to match:\n  " << step.toString().c_str() << "\n";
       std::cout << "Matching ... \n";
 
-      int maxK = prototypes.size();
+      unsigned int maxK = prototypes.size();
       bool matched = false;
-      for(int k = 0; (!matched) && (k < maxK); k++)
+      for(unsigned int k = 0; (!matched) && (k < maxK); k++)
       {
           Expression crPred = prototypes[k].m_pdPredicate->expression();
           Expression stepCp = step;
@@ -123,7 +123,7 @@ namespace gdaplanner {
 
   void Action::initFromSequence(std::string const& name, std::vector<Action> const& prototypes, std::vector<Expression> const& steps)
   {
-      int maxK = steps.size();
+      unsigned int maxK = steps.size();
 
       std::cout << "Step 0." << std::endl;
       /*Step 0: create a new list of prototypes where all variable names are unique.*/
@@ -132,11 +132,11 @@ namespace gdaplanner {
       std::vector<Action> auxPrototypes; auxPrototypes.clear();
       auxPrototypes.reserve(maxK);
 
-      for(int k = 0; k < maxK; k++)
+      for(unsigned int k = 0; k < maxK; k++)
           auxPrototypes.push_back(matchAction(prototypes, steps[k], k));
 
       std::cout << "AUXPROTOTYPES:\n";
-      for(int k = 0; k < maxK; k++)
+      for(unsigned int k = 0; k < maxK; k++)
           std::cout << "  " << auxPrototypes[k].m_pdPredicate->expression().toString().c_str() << " := " << auxPrototypes[k].preconditions().toString().c_str() << "  " << auxPrototypes[k].effects().toString().c_str() << "\n";
 
       std::cout << "Step 0." << std::endl;
@@ -149,7 +149,7 @@ namespace gdaplanner {
       std::vector<std::string> params;
 
       /* LOOP over steps.*/
-      for(int k = 0; k < maxK; k++)
+      for(unsigned int k = 0; k < maxK; k++)
       {
           std::vector<Expression> subExpProto = auxPrototypes[k].m_pdPredicate->expression().subExpressions();
           std::vector<Expression> subExpStep = steps[k].subExpressions();
@@ -190,11 +190,11 @@ namespace gdaplanner {
       std::cout << "Step 0." << std::endl;
       /*Step 2: create a new list of prototypes where parameters associated to the same value
         in steps will have the same name.*/
-      for(int k = 0; k < maxK; k++)
+      for(unsigned int k = 0; k < maxK; k++)
           auxPrototypes[k] = auxPrototypes[k].parametrize(param2ParamMap);
 
       std::cout << "AUXPROTOTYPES:\n";
-      for(int k = 0; k < maxK; k++)
+      for(unsigned int k = 0; k < maxK; k++)
           std::cout << "  " << auxPrototypes[k].m_pdPredicate->expression().toString().c_str() << " := " << auxPrototypes[k].preconditions().toString().c_str() << "  " << auxPrototypes[k].effects().toString().c_str() << "\n";
 
       /*Step 2.5: handle side-effects.
@@ -212,12 +212,12 @@ namespace gdaplanner {
       for(std::map<std::string, Expression>::iterator it = param2ValueMap.begin();
           it != param2ValueMap.end(); it++)
           /*LOOP over auxPrototypes*/
-          for(int k = 0; k < maxK; k++)
+          for(unsigned int k = 0; k < maxK; k++)
               if((!auxPrototypes[k].m_pdPredicate->expression().hasSubExpression(Expression::parseString(it->first)[0])) &&
                  (auxPrototypes[k].preconditions().hasSubExpression(it->second) || auxPrototypes[k].effects().hasSubExpression(it->second)))
                   sideEffects.insert(std::pair<std::string, Expression>(it->first, it->second));
 
-      for(int k = 0; k < maxK; k++)
+      for(unsigned int k = 0; k < maxK; k++)
           auxPrototypes[k] = auxPrototypes[k].parametrize(sideEffects);
 
       for(std::map<std::string, Expression>::iterator it = param2ValueMap.begin();
@@ -226,7 +226,7 @@ namespace gdaplanner {
               params.push_back(it->first);
 
       std::cout << "AUXPROTOTYPES:\n";
-      for(int k = 0; k < maxK; k++)
+      for(unsigned int k = 0; k < maxK; k++)
           std::cout << "  " << auxPrototypes[k].m_pdPredicate->expression().toString().c_str() << " := " << auxPrototypes[k].preconditions().toString().c_str() << "  " << auxPrototypes[k].effects().toString().c_str() << "\n";
 
       std::cout << "Step 0." << std::endl;
@@ -237,7 +237,7 @@ namespace gdaplanner {
       std::vector<Expression> effects; effects.clear();
 
       /*LOOP over steps (or rather, auxPrototypes, which has the same length as steps)*/
-      for(int k = 0; k < maxK; k++)
+      for(unsigned int k = 0; k < maxK; k++)
       {
           Expression aux = auxPrototypes[k].m_exPreconditions;
           /*Regularization: ensure that aux is of the form (AND <expressions>)*/
@@ -283,7 +283,7 @@ namespace gdaplanner {
       m_exEffects = Expression::parseString(expVec2ConjString(effects))[0];
       maxK = params.size();
       std::string predString = "(" + name;
-      for(int k = 0; k < maxK; k++)
+      for(unsigned int k = 0; k < maxK; k++)
           predString += (" " + params[k]);
       predString += ")";
       m_pdPredicate.reset(new Predicate(Expression::parseString(predString)[0]));

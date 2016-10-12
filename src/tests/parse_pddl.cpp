@@ -17,7 +17,7 @@ bool exists(std::string strFile) {
 }
 
 
-int main(int argc, char** argv) {
+int main(__attribute__((unused)) int argc, __attribute__((unused)) char** argv) {
   int nReturnvalue = EXIT_FAILURE;
   
   std::vector<std::string> vecTestDataDirectories = {"elevator", "openstacks", "parcprinter", "pegsol", "scanalyzer"};
@@ -27,7 +27,6 @@ int main(int argc, char** argv) {
     std::string strFullDir = "../data/test/" + strDirectory;
     
     unsigned int unIndex = 1;
-    bool bGoon = true;
     
     while(true) {
       std::stringstream sts;

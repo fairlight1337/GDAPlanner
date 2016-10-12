@@ -305,7 +305,7 @@ namespace gdaplanner {
 	if(exList == Expression::List) {
 	  int nIndex = solPrior.index();
 	  
-	  while(nIndex + 1 < exList.size()) {
+	  while((unsigned int)(nIndex + 1) < exList.size()) {
 	    nIndex++;
 	    std::map<std::string, Expression> mapR;
 	    
@@ -671,7 +671,7 @@ namespace gdaplanner {
   }
 
   Prolog::LambdaPredicate Prolog::makeCallbackPredicate(std::string const& strPredicate, std::function<Expression(unsigned int)> fncLambda) {
-    return [strPredicate, fncLambda](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+    return [strPredicate, fncLambda](Expression exQuery, Solution solPrior, __attribute__((unused)) Solution::Bindings bdgBindings) -> Solution {
       Solution solResult;
       solResult.setValid(false);
       
@@ -724,7 +724,7 @@ namespace gdaplanner {
   }
 
   Prolog::LambdaPredicate Prolog::makeLazyListPredicate(std::string const& strPredicate, std::vector<Expression> const& vecList) {
-    return [strPredicate, vecList](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+    return [strPredicate, vecList](Expression exQuery, Solution solPrior, __attribute__((unused)) Solution::Bindings bdgBindings) -> Solution {
       Solution solResult;
       solResult.setValid(false);
       
@@ -760,7 +760,7 @@ namespace gdaplanner {
   }
 
   void Prolog::addDefaultLambdaPredicates() {
-    this->addSimpleLambdaPredicate("(print-world)", [this](std::map<std::string, Expression> mapBindings) {
+    this->addSimpleLambdaPredicate("(print-world)", [this](__attribute__((unused)) std::map<std::string, Expression> mapBindings) {
 	if(m_wdWorld) {
 	  std::cout << *m_wdWorld << std::endl;
 	} else {
@@ -780,11 +780,11 @@ namespace gdaplanner {
 	}
       });
     
-    this->addLambdaPredicate("(true)", [this](std::map<std::string, Expression> mapBindings) {
+    this->addLambdaPredicate("(true)", [this](__attribute__((unused)) std::map<std::string, Expression> mapBindings) {
 	return true;
       });
     
-    this->addLambdaPredicate("(false)", [this](std::map<std::string, Expression> mapBindings) {
+    this->addLambdaPredicate("(false)", [this](__attribute__((unused)) std::map<std::string, Expression> mapBindings) {
 	return false;
       });
     
@@ -863,7 +863,7 @@ namespace gdaplanner {
 	return mapBindings["?a"].isBound();
       });
     
-    this->addLambdaPredicate([](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+    this->addLambdaPredicate([](Expression exQuery, Solution solPrior, __attribute__((unused)) Solution::Bindings bdgBindings) -> Solution {
 	Solution solResult;
 	solResult.setValid(false);
 	
@@ -949,7 +949,7 @@ namespace gdaplanner {
       exAnd.add(Expression::parseSingle(strElement));
     }
     
-    m_vecLambdaPredicates.push_back([this, strPredicate, exAnd](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+    m_vecLambdaPredicates.push_back([this, strPredicate, exAnd](Expression exQuery, Solution solPrior, __attribute__((unused)) Solution::Bindings bdgBindings) -> Solution {
 	Solution solResult;
 	solResult.setValid(false);
 	
@@ -975,7 +975,7 @@ namespace gdaplanner {
       exAnd.add(exElement);
     }
     
-    m_vecLambdaPredicates.push_back([this, exPredicate, exAnd](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+    m_vecLambdaPredicates.push_back([this, exPredicate, exAnd](Expression exQuery, Solution solPrior, __attribute__((unused)) Solution::Bindings bdgBindings) -> Solution {
 	Solution solResult;
 	solResult.setValid(false);
 	

@@ -78,7 +78,7 @@ bool checkQueries(Collection colData) {
 }
 
 
-int main(int argc, char** argv) {
+int main(__attribute__((unused)) int argc, __attribute__((unused)) char** argv) {
   int nReturnvalue = EXIT_FAILURE;
   
   Collection colData = {{"(and (or (= (?a ?b) (1 b)) (= (?a ?b) (a b))) \
