@@ -30,15 +30,17 @@ namespace gdaplanner {
 	return m_mapBindings[strVariable];
       }
       Expression const& operator[](std::string strVariable) const{
-    return m_mapBindings.find(strVariable)->second;
+	return m_mapBindings.find(strVariable)->second;
       }
-
+      
       std::map<std::string, Expression>& bindings() {
 	return m_mapBindings;
       }
       std::map<std::string, Expression>const& bindings() const{
-    return m_mapBindings;
+	return m_mapBindings;
       }
+      
+      Bindings sanitize(std::string strSuffix);      
 
       bool bound(std::string strVariable) const {
 	return m_mapBindings.find(strVariable) != m_mapBindings.end();
@@ -193,6 +195,10 @@ namespace gdaplanner {
 	return m_vecSubSolutions.back().finalBindings();//.bindings();
       }
     }
+    
+    void setBindings(Bindings bdgSet);
+    
+    void clearBindings();
     
     static Solution invalidSolution() {
       Solution solInvalid;
