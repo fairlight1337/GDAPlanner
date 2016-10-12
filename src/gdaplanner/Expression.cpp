@@ -628,7 +628,7 @@ namespace gdaplanner {
     return *this;
   }
   
-  bool Expression::isBound() {
+  bool Expression::isBound() const {
     return !(this->isVariable() || this->isWildcard());
   }
     
