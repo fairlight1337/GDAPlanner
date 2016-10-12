@@ -481,7 +481,7 @@ namespace gdaplanner {
         wildcards.
 	
         \return Boolean value denoting whether this Expression is bound */
-    bool isBound();
+    bool isBound() const;
     
     /** \brief Check whether this expression is a number
         
