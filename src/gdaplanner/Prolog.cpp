@@ -212,6 +212,49 @@ namespace gdaplanner {
 	  std::cerr << "Error: No format string specified in '" << exQueryBound << "'." << std::endl;
 	}
       }
+    } else if(exQueryBound.predicateName() == "imply") {
+      exQueryBound.popFront();
+      
+      if(solPrior.index() == -1) {
+	if(exQueryBound.size() >= 2) {
+	  Expression exCondition = exQueryBound[0];
+	  exQueryBound.popFront();
+	  
+	  Solution solSolution = solPrior;
+	  
+	  if(solSolution.subSolutions().size() < 1) {
+	    Solution solNew;
+	    solNew.index() = -1;
+	    
+	    solSolution.addSubSolution(solNew);
+	  }
+	  
+	  solSolution.subSolution(0) = this->unify(exCondition, solSolution.subSolution(0), bdgBindings);
+	  
+	  if(solSolution.subSolution(0).valid()) {
+	    Expression exAndImplications;
+	    exAndImplications.add("and");
+	    
+	    for(Expression exImplication : exQueryBound.subExpressions()) {
+	      exAndImplications.add(exImplication);
+	    }
+	    
+	    if(solSolution.subSolutions().size() < 1) {
+	      Solution solNew;
+	      solNew.index() = -1;
+	      
+	      solSolution.addSubSolution(solNew);
+	    }
+	    
+	    solSolution.subSolution(1) = this->unify(exAndImplications, solSolution.subSolution(0), solSolution.subSolution(0).bindings());
+	    
+	    if(solSolution.subSolution(1).valid()) {
+	      solResult = solSolution;
+	      solSolution.index() = solSolution.index() + 1;
+	    }
+	  }
+	}
+      }
     } else if(exQueryBound.predicateName() == "<-") {
       exQueryBound.popFront();
       
@@ -570,11 +613,36 @@ namespace gdaplanner {
     Solution solResult;
     solResult.setValid(false);
     
+    Expression const exQuerySanitized = ((Expression&)exQuery).sanitize("_");
+    Solution::Bindings bdgSane =  ((Solution::Bindings)bdgBindings).sanitize("_");
+    
     for(LambdaPredicate lpPredicate : m_vecLambdaPredicates) {
-      Solution solTemp = lpPredicate(exQuery, solPrior, bdgBindings);
+      Solution solTemp = lpPredicate(exQuerySanitized, solPrior, bdgSane);
       
       if(solTemp.valid()) {
+	std::vector<std::string> vecVariables;
+	exQuery.getVarNames(vecVariables);
+	
+	std::map<std::string, Expression> mapBindings = solTemp.finalBindings();
+	Solution::Bindings b = Solution::Bindings(mapBindings);
+	
+	std::map<std::string, Expression> mapBindingsClean;
+	for(std::string strVar : vecVariables) {
+	  std::string strVarSane = strVar + "_";
+	  
+	  if(mapBindings.find(strVar) != mapBindings.end()) {
+	    mapBindingsClean[strVar] = mapBindings[mapBindings[strVarSane].get<std::string>()];
+	  }
+	}
+	
+	Solution::Bindings bdgFinal = bdgSane.desanitize("_");
+	for(std::string strVar : vecVariables) {
+	  bdgFinal[strVar] = mapBindings[mapBindings[strVar + "_"].get<std::string>()];
+	}
+	
 	solResult = solTemp;
+	solResult.setBindings(bdgFinal);
+	
 	break;
       }
     }
@@ -632,7 +700,7 @@ namespace gdaplanner {
       Solution solResult;
       solResult.setValid(false);
       
-      std::map<std::string, Expression> mapBindings;
+      std::map<std::string, Expression> mapBindings = bdgBindings.bindings();
       
       if(exQuery.match(strPredicate, mapBindings)) {
 	if(solPrior.index() == -1) {
@@ -640,6 +708,8 @@ namespace gdaplanner {
 	  
 	  if(bResult) {
 	    solResult = Solution();
+	    //solResult.bindings().bindings() = mapBindings;
+	    //std::cout << "The new solution is this: " << solResult;
 	    solResult.index() = 0;
 	  }
 	}
