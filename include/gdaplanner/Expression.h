@@ -482,6 +482,13 @@ namespace gdaplanner {
         \return Boolean value denoting whether this Expression is bound */
     bool isBound();
     
+    /** \brief Check whether this expression is a number
+        
+	Numbers are defined as either being of type Expression::Float,
+        Expression::Double, Expression::Integer, or
+        Expression::UnsignedInteger.
+	
+        \return Boolean value denoting whether this Expression is a number */
     bool isNumber();
     
     unsigned int transformToUnsignedInteger(bool& bTransformed);
