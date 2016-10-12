@@ -173,9 +173,7 @@ namespace gdaplanner {
     /** \brief Returns the Expression::Type of this instance 
 
 	\return Expression::Type of this instance */
-    Type type() const {
-      return m_tpType;
-    }
+    Type type() const;
     
     /** \brief Returns the Value stored in this instance
 	
@@ -217,28 +215,26 @@ namespace gdaplanner {
 	return its list length.
 	
 	\return Length of list stored in this Expression */
-    unsigned int size() const {
-      return m_vecSubExpressions.size();
-    }
-
+    unsigned int size() const;
+    
     /** \brief Returns a vector containing names of the variables in the expression
-
-    List all variables occurring anywhere in the expression. Variable names begin
-    with '?'. The returned vector contains no duplicates. The wildcard variable,
-    '?_', is not returned.
-
-    Any content existing in the varNames parameter at the moment the function is
-    called is NOT erased.
-
-    \return Nothing*/
+	
+	List all variables occurring anywhere in the expression. Variable names begin
+	with '?'. The returned vector contains no duplicates. The wildcard variable,
+	'?_', is not returned.
+	
+	Any content existing in the varNames parameter at the moment the function is
+	called is NOT erased.
+	
+	\return Nothing*/
     void getVarNames(std::vector<std::string> & varNames) const;
-
+    
     /** \brief Used to test if an exact copy of an expression occurs anywhere inside the
-     * current one.
-
-    Tests all the expression tree. Matching must be exact, no resolution is performed.
-
-    \return bool indicating whether some subexpression exactly matches the given one*/
+      * current one.
+     
+     Tests all the expression tree. Matching must be exact, no resolution is performed.
+     
+     \return bool indicating whether some subexpression exactly matches the given one*/
     bool hasSubExpression(Expression const& what) const;
     
     /** \brief Access individual elements in the list
@@ -250,12 +246,8 @@ namespace gdaplanner {
 	value is undefined.
 	
 	\param unIndex Index of the element to return */
-    Expression& operator[](unsigned int unIndex) {
-      return m_vecSubExpressions[unIndex];
-    }
-    Expression const& operator[](unsigned int unIndex) const {
-      return m_vecSubExpressions[unIndex];
-    }
+    Expression& operator[](unsigned int unIndex);
+    Expression const& operator[](unsigned int unIndex) const;
     
     /** \brief Return vector of this list's sub-expressions
 	
@@ -266,13 +258,9 @@ namespace gdaplanner {
 	value is undefined.
 	
 	\return std::vector of Expression instances stored in this Expression instance */
-    std::vector<Expression>& subExpressions() {
-      return m_vecSubExpressions;
-    }
+    std::vector<Expression>& subExpressions();
+    std::vector<Expression>const& subExpressions() const;
     
-    std::vector<Expression>const& subExpressions() const{
-      return m_vecSubExpressions;
-    }
     /** \brief Return a subset of sub-expressions from this list
 	
 	If this Expression instance is of type Expression::List,
@@ -286,7 +274,8 @@ namespace gdaplanner {
 	Usage example:
 	\code{.cpp}
 	Expression exList({"Hello", "World", 1, 2, 3, 4.0});
-	Expression exIntegers = exList.subSequence(2, 3); // Will contain the elements `{1, 2, 3}`.
+	Expression exIntegers = exList.subSequence(2, 3);
+	// `exIntegers` will now contain the elements `{1, 2, 3}`.
 	\endcode
 	
 	If the Expression is not of type Expression::List, the return
@@ -296,19 +285,7 @@ namespace gdaplanner {
 	\param unLength Desired length of the sub-et
 	
 	\return Expression of type Expression::List holding the subset of Expression instances from the original list */
-    std::vector<Expression> subSequence(unsigned int unStart, unsigned int unLength = 0) const {
-      std::vector<Expression> vecSequence;
-      
-      if(unLength == 0) {
-	unLength = m_vecSubExpressions.size() - unStart;
-      }
-      
-      for(unsigned int unI = unStart; unI < unStart + unLength; ++unI) {
-	vecSequence.push_back(m_vecSubExpressions[unI]);
-      }
-      
-      return vecSequence;
-    }
+    std::vector<Expression> subSequence(unsigned int unStart, unsigned int unLength = 0) const;
     
     /** \brief Parametrize an expression
 	
@@ -342,85 +319,10 @@ namespace gdaplanner {
 	\param mapParametrization The set of variables to replace in the original Expression
 	
 	\return Expression instance obeying the above formulation */
-    Expression parametrize(std::map<std::string, Expression> const& mapParametrization) const {
-      Expression exParametrized = *this;
-      
-      switch(m_tpType) {
-      case String: {
-	std::string strUs = this->get<std::string>();
-	
-	if(strUs.size() > 0) {
-	  if(strUs[0] == '?') {
-        std::map<std::string, Expression>::const_iterator it = mapParametrization.find(strUs);
-        if(it != mapParametrization.end()) {
-          exParametrized = it->second;
-	    }
-	  }
-	}
-      } break;
-	
-      case List: {
-	std::vector<Expression> vecSubNew;
-	
-	for(Expression exSub : m_vecSubExpressions) {
-	  vecSubNew.push_back(exSub.parametrize(mapParametrization));
-	}
-	
-	exParametrized = Expression(vecSubNew);
-      } break;
-	
-      default: {
-      } break;
-      }
-      
-      return exParametrized;
-    }
+    Expression parametrize(std::map<std::string, Expression> const& mapParametrization) const;
     
     /** \brief Specifies how this class is printed to output streams */
-    virtual std::string toString() const override {
-      std::stringstream sts;
-      
-      switch(m_tpType) {
-      case List: {
-	sts << "(";
-	bool bFirst = true;
-	
-	for(Expression exSub : m_vecSubExpressions) {
-	  if(bFirst) {
-	    bFirst = false;
-	  } else {
-	    sts << " ";
-	  }
-	  
-	  sts << exSub;
-	}
-	sts << ")";
-      } break;
-	
-      case String: {
-	std::string strUs = this->get<std::string>();
-	bool bSpace = false;
-	
-	for(unsigned int unI = 0; unI < strUs.size(); ++unI) {
-	  if(isspace(strUs[unI])) {
-	    bSpace = true;
-	    break;
-	  }
-	}
-	
-	if(bSpace) sts << "\"";
-	sts << strUs;
-	if(bSpace) sts << "\"";
-      } break;
-	
-      case Double: sts << this->get<double>(); break;
-      case Float: sts << this->get<float>(); break;
-      case Integer: sts << this->get<int>(); break;
-      case UnsignedInteger: sts << this->get<unsigned int>(); break;
-      }
-      
-      return sts.str();
-    }
+    virtual std::string toString() const override;
     
     /** \brief Check if this instance is a wildcard
 	
@@ -429,9 +331,7 @@ namespace gdaplanner {
 	instance is such a wildcard.
 	
 	\return Boolean value denoting whether this instance is a wildcard */
-    bool isWildcard() const {
-      return (m_tpType == String && *this == "?_");
-    }
+    bool isWildcard() const;
     
     /** \brief Check if this list includes a wildcard
 	
@@ -440,29 +340,9 @@ namespace gdaplanner {
 	element.
 	
 	\return Boolean value denoting whether this list contains a wildcard */
-    bool hasWildcard() const {
-      if(m_tpType == List) {
-	for(Expression exTest : m_vecSubExpressions) {
-	  if(exTest.isWildcard()) {
-	    return true;
-	  }
-	}
-      }
-      
-      return false;
-    }
+    bool hasWildcard() const;
     
-    bool contains(Expression exContained) const {
-      if(m_tpType == List) {
-	for(Expression exCheck : m_vecSubExpressions) {
-	  if(exCheck == exContained) {
-	    return true;
-	  }
-	}
-      }
-      
-      return false;
-    }
+    bool contains(Expression exContained) const;
     
     /** \brief Check if this instance is a variable
 	
@@ -472,186 +352,18 @@ namespace gdaplanner {
 	a variable.
 	
 	\return Boolean value denoting whether this instance is a variable */
-    bool isVariable() const {
-      if(!this->isWildcard()) {
-	if(this->type() == String) {
-	  std::string strString = this->get<std::string>();
-	  
-	  if(strString.size() > 0) {
-	    if(strString[0] == '?') {
-	      return true;
-	    }
-	  }
-	}
-      }
-      
-      return false;
-    }
+    bool isVariable() const;
     
     /** \brief Check if this instance is of type Expression::List
 	
 	\return Boolean value denoting whether this instance is of type Expression::List */
-    bool isListOf(Type tpType) const {
-      if(m_tpType == List) {
-	bool bAllOfType = true;
-	
-	for(Expression exTest : m_vecSubExpressions) {
-	  if(exTest.type() != tpType) {
-	    bAllOfType = false;
-	    break;
-	  }
-	}
-	
-	return bAllOfType;
-      }
-      
-      return false;
-    }
+    bool isListOf(Type tpType) const;
     
-    static bool appendToResolution(std::map<std::string, Expression>& mapResolutionA, std::map<std::string, Expression> const& mapResolutionB) {
-      bool bSuccess = true;
-      
-      for(std::map<std::string, Expression>::const_iterator itPair = mapResolutionB.begin(); itPair != mapResolutionB.end(); ++itPair) {
-	bSuccess = false;
-	
-	if(mapResolutionA.find(itPair->first) != mapResolutionA.end()) {
-	  if(mapResolutionA[itPair->first] == itPair->second) {
-	    bSuccess = true;
-	  }
-	} else {
-	  mapResolutionA[itPair->first] = itPair->second;
-	  bSuccess = true;
-	}
-	
-	if(!bSuccess) {
-	  break;
-	}
-      }
-      
-      return bSuccess;
-    }
+    static bool appendToResolution(std::map<std::string, Expression>& mapResolutionA, std::map<std::string, Expression> const& mapResolutionB);
     
-    static bool resolveExpressionsIntoResolution(std::map<std::string, Expression>& mapResolution, Expression const& exA, Expression const& exB, bool bExact = false) {
-      bool bResolvedSub;
-      std::map<std::string, Expression> mapResolutionSub = exA.resolve(exB, bResolvedSub, bExact);
-      
-      if(bResolvedSub) {
-	if(Expression::appendToResolution(mapResolution, mapResolutionSub)) {
-	  return true;
-	}
-      }
-      
-      return false;
-    }
+    static bool resolveExpressionsIntoResolution(std::map<std::string, Expression>& mapResolution, Expression const& exA, Expression const& exB, bool bExact = false);
     
-    static std::map<std::string, Expression> resolveLists(Expression const& exListA, Expression const& exListB, bool& bResolved, bool bExact = false) {
-      std::map<std::string, Expression> mapResolution;
-      bResolved = false;
-      
-      if(exListA.type() == List && exListB.type() == List) {
-	if(bExact) {
-	  if(exListA.size() == exListB.size()) {
-	    bResolved = true;
-	    
-	    for(unsigned int unI = 0; unI < exListA.size(); ++unI) {
-	      bResolved = Expression::resolveExpressionsIntoResolution(mapResolution, exListA[unI], exListB[unI], bExact);
-	      
-	      if(!bResolved) {
-		break;
-	      }
-	    }
-	  }
-	} else {
-	  bool bWCA = exListA.hasWildcard();
-	  bool bWCB = exListB.hasWildcard();
-	  bResolved = true;
-	
-	  std::vector<Expression> vecA = exListA.subExpressions();
-	  std::vector<Expression> vecB = exListB.subExpressions();
-	
-	  std::vector<Expression>::iterator itA = vecA.begin();
-	  std::vector<Expression>::iterator itB = vecB.begin();
-	
-	  if(bWCA) {
-	    bResolved = true;
-	  
-	    // B should have any items A has, in any order, or more
-	    for(; itA != vecA.end(); ++itA) {
-	      if(!itA->isWildcard()) {
-		bResolved = false;
-	      
-		for(; itB != vecB.end(); ++itB) {
-		  if(!itB->isWildcard()) {
-		    bResolved = Expression::resolveExpressionsIntoResolution(mapResolution, *itA, *itB);
-		  
-		    if(bResolved) {
-		      // Remove item from B as it was `used up` to
-		      // validate an item in A.
-		      vecB.erase(itB);
-		      break;
-		    }
-		  }
-		}
-	      
-		if(!bResolved) {
-		  if(bWCB) {
-		    bResolved = true;
-		  } else {
-		    break;
-		  }
-		}
-	      }
-	    }
-	  } else {
-	    bResolved = true;
-	  
-	    // B should have all items A has, and not more (except for
-	    // wildcards), in the exact same order
-	    unsigned int unResolved = 0;
-	  
-	    for(; (itA != vecA.end()) && (itB != vecB.end()); ++itA, ++itB) {
-	      while(itA != vecA.end() && itA->isWildcard()) {
-		++itA;
-	      }
-	    
-	      if(itA != vecA.end()) {
-		unResolved++;
-	      
-		while(itB != vecB.end() && itB->isWildcard()) {
-		  ++itB;
-		}
-	      
-		if(itB != vecB.end()) {
-		  if(Expression::resolveExpressionsIntoResolution(mapResolution, *itA, *itB)) {
-		    unResolved--;
-		  }
-		}
-	      }
-	    
-	      if(itA == vecA.end()) {
-		--itA;
-	      }
-	    
-	      if(itB == vecB.end()) {
-		--itB;
-	      }
-	    }
-	  
-	    while(itA != vecA.end() && itA->isWildcard()) {
-	      itA++;
-	    }
-	  
-	    while(itB != vecB.end() && itB->isWildcard()) {
-	      itB++;
-	    }
-	  
-	    bResolved = ((itA == vecA.end() || bWCB) && (itB == vecB.end() || bWCA) && ((unResolved == 0) || (bWCB && unResolved > 0)));
-	  }
-	}
-      }
-      
-      return mapResolution;
-    }
+    static std::map<std::string, Expression> resolveLists(Expression const& exListA, Expression const& exListB, bool& bResolved, bool bExact = false);
     
     /** \brief Resolves this instance against another instance
 	
@@ -691,152 +403,15 @@ namespace gdaplanner {
 	\param bResolved Boolean flag denoting whether the resolution was successful
 	
 	\return Map of variable to value bindings */
-    std::map<std::string, Expression> resolve(Expression const& exOther, bool& bResolved, bool bExact = false) const {
-      std::map<std::string, Expression> mapResolution;
-      bResolved = false;
-      
-      if(m_tpType == exOther.type()) {
-	bool bAllEqual = true;
-	
-	switch(m_tpType) {
-	case String: {
-	  std::string strA = this->get<std::string>();
-	  std::string strB = exOther.get<std::string>();
-	  
-	  if(bExact) {
-	    if((this->isVariable() && exOther.isVariable()) ||
-	       (strA == strB)) {
-	      bResolved = true;
-	    }
-	  } else {
-	    if(strA.size() > 0 && strB.size() > 0) {
-	      if(strA[0] == '?') {
-		if(strB[0] == '?') {
-		  bResolved = true;
-		
-		  if(strA != "?_") {
-		    mapResolution[strA] = exOther;
-		  }
-		
-		  if(strA != strB && strB != "?_") {
-		    mapResolution[strB] = *this;
-		  }
-		} else {
-		  bResolved = true;
-		
-		  if(strA != "?_") {
-		    mapResolution[strA] = exOther;
-		  }
-		}
-	      } else {
-		if(strB[0] == '?') {
-		  bResolved = true;
-		
-		  if(strB != "?_") {
-		    mapResolution[strB] = *this;
-		  }
-		} else {
-		  if(strA == strB) {
-		    bResolved = true;
-		  }
-		}
-	      }
-	    }
-	  }
-	} break;
-	  
-	case Double: {
-	  bResolved = (this->get<double>() == exOther.get<double>());
-	} break;
-	  
-	case Float: {
-	  bResolved = (this->get<float>() == exOther.get<float>());
-	} break;
-	  
-	case Integer: {
-	  bResolved = (this->get<int>() == exOther.get<int>());
-	} break;
-	  
-	case UnsignedInteger: {
-	  bResolved = (this->get<unsigned int>() == exOther.get<unsigned int>());
-	} break;
-	  
-	case List: {
-	  mapResolution = Expression::resolveLists(*this, exOther, bResolved, bExact);
-	  
-	  if(bResolved) {
-	    std::map<std::string, Expression> mapResolution2 = Expression::resolveLists(exOther, *this, bResolved, bExact);
-	    
-	    if(bResolved) {
-	      for(std::map<std::string, Expression>::iterator itR = mapResolution2.begin(); itR != mapResolution2.end(); ++itR) {
-		if(mapResolution.find(itR->first) != mapResolution.end()) {
-		  if(!(mapResolution[itR->first] == itR->second)) {
-		    bResolved = false;
-		    break;
-		  }
-		} else {
-		  mapResolution[itR->first] = itR->second;
-		}
-	      }
-	    }
-	  } break;
-	}
-	}
-      } else if(m_tpType == String && !bExact) {
-	std::string strUs = this->get<std::string>();
-	
-	if(strUs.size() > 0) {
-	  if(strUs[0] == '?') {
-	    mapResolution[strUs] = exOther;
-	    bResolved = true;
-	  }
-	}
-      } else if(exOther.type() == String && !bExact) {
-	std::string strThem = exOther.get<std::string>();
-	
-	if(strThem.size() > 0) {
-	  if(strThem[0] == '?') {
-	    mapResolution[strThem] = *this;
-	    bResolved = true;
-	  }
-	}
-      }
-      
-      return mapResolution;
-    }
+    std::map<std::string, Expression> resolve(Expression const& exOther, bool& bResolved, bool bExact = false) const;
     
-    bool matchEx(Expression const& exMatch, std::map<std::string, Expression>& mapResolution) const {
-      bool bResolved;
-      mapResolution = this->resolve(exMatch, bResolved);
-      
-      if(!bResolved) {
-	mapResolution = {};
-      }
-      
-      return bResolved;
-    }
+    bool matchEx(Expression const& exMatch, std::map<std::string, Expression>& mapResolution) const;
     
-    bool match(std::string const& strMatchString, std::map<std::string, Expression>& mapResolution) const {
-      Expression exMatch = Expression::parseSingle(strMatchString);
-      return this->matchEx(exMatch, mapResolution);
-    }
+    bool match(std::string const& strMatchString, std::map<std::string, Expression>& mapResolution) const;
     
-    bool operator==(Expression const& exOther) const {
-      bool bResolved;
-      std::map<std::string, Expression> mapResult = this->resolve(exOther, bResolved);
-      
-      return bResolved;
-    }
-    
-    bool operator==(Expression::Type tpType) const {
-      return m_tpType == tpType;
-    }
-
-    bool operator==(const char* arrcValue) const {
-      typename Value<std::string>::PtrConst vlValue = std::dynamic_pointer_cast<Value<std::string> const>(m_vbValue);
-      
-      return (vlValue && vlValue->get() == std::string(arrcValue));
-    }
+    bool operator==(Expression const& exOther) const;
+    bool operator==(Expression::Type tpType) const;
+    bool operator==(const char* arrcValue) const;
     
     template<typename T>
       bool operator==(T const& tValue) const {
@@ -845,124 +420,30 @@ namespace gdaplanner {
       return (vlValue && vlValue->get() == tValue);
     }
     
-    std::string predicateName() const {
-      if(m_tpType == List && m_vecSubExpressions.size() > 0 && m_vecSubExpressions[0] == String) {
-	return m_vecSubExpressions[0].get<std::string>();
-      }
-      
-      return "";
-    }
+    std::string predicateName() const;
     
-    void add(Expression const& exAdd) {
-      if(m_tpType != List) {
-	m_vecSubExpressions.push_back(*this);
-	m_tpType = List;
-      }
-      
-      m_vecSubExpressions.push_back(exAdd);
-    }
+    void add(Expression const& exAdd);
     
-    bool remove(unsigned int unIndex) {
-      if(m_tpType == List) {
-	if(m_vecSubExpressions.size() > unIndex) {
-	  std::vector<Expression>::iterator itSub = m_vecSubExpressions.begin();
-	  std::advance(itSub, unIndex);
-	  
-	  m_vecSubExpressions.erase(itSub);
-	  
-	  return true;
-	}
-      }
-      
-      return false;
-    }
+    bool remove(unsigned int unIndex);
     
-    Expression popFront() {
-      if(m_tpType == List) {
-	if(m_vecSubExpressions.size() > 0) {
-	  Expression exReturn = m_vecSubExpressions[0];
-	  m_vecSubExpressions.erase(m_vecSubExpressions.begin());
-	  
-	  return exReturn;
-	}
-      }
-      
-      throw std::exception();
-    }
+    Expression popFront();
     
-    Expression negate() const {
-      if(m_tpType == List) {
-	if(this->size() == 2 && m_vecSubExpressions[0] == "not") {
-	  return m_vecSubExpressions[1];
-	}
-      }
-      
-      Expression exNot;
-      exNot.add(Expression::parseString("not")[0]);
-      exNot.add(*this);
-      
-      return exNot;
-    }
+    Expression negate() const;
     
-    void pushFront(Expression exPush) {
-      if(m_tpType != List) {
-	m_vecSubExpressions.push_back(*this);
-	m_tpType = List;
-      }
-      
-      m_vecSubExpressions.insert(m_vecSubExpressions.begin(), exPush);
-    }
+    void pushFront(Expression exPush);
     
-    std::string stringify() const {
     /** \brief Transforms this Expression into a string
 	
 	The contents of this Expression and all sub-Expressions will
 	be formatted into a proper string.
 	
 	\brief String denoting the contents of this Expression */
-      std::stringstream sts;
-      
-      switch(m_tpType) {
-      case Float: { sts << this->get<float>(); } break;
-      case Double: { sts << this->get<double>(); } break;
-      case Integer: { sts << this->get<int>(); } break;
-      case UnsignedInteger: { sts << this->get<unsigned int>(); } break;
-	
-      case String: {
-	if(this->isWildcard() || this->isVariable()) {
-	  sts << "?";
-	} else {
-	  sts << this->get<std::string>();
-	}
-      } break;
-	
-      case List: {
-	sts << "(";
-	
-	bool bFirst = true;
-	for(Expression exSub : m_vecSubExpressions) {
-	  if(bFirst) {
-	    bFirst = false;
-	  } else {
-	    sts << " ";
-	  }
-	  
-	  sts << exSub.stringify();
-	}
-	
-	sts << ")";
-      } break;
-      }
-      
-      return sts.str();
-    }
+    std::string stringify() const;
     
-    size_t hash() const {
     /** \brief Generates a hash value of this Expression instance
 	
 	\return Hash value for this instance */
-      return std::hash<std::string>()(this->stringify());
-    }
+    size_t hash() const;
     
     static std::vector<Expression> parseString(std::string strSource);
     static std::vector<Expression> parseString(std::string& strSource, unsigned int& unPos);
@@ -991,21 +472,7 @@ namespace gdaplanner {
 	\param strSuffix The suffix to append to all variable names and wildcards
 	
 	\return Sanitized copy of the current Expression */
-    Expression sanitize(std::string strSuffix) {
-      if(this->isVariable() || this->isWildcard()) {
-	return Expression(this->get<std::string>() + strSuffix);
-      } else if(m_vecSubExpressions.size() > 0) {
-	std::vector<Expression> vecSanitized;
-	
-	for(Expression exSub : m_vecSubExpressions) {
-	  vecSanitized.push_back(exSub.sanitize(strSuffix));
-	}
-	
-	return Expression(vecSanitized);
-      }
-      
-      return *this;
-    }
+    Expression sanitize(std::string strSuffix);
     
     /** \brief Check whether this expression is bound to an actual value
         
@@ -1013,97 +480,13 @@ namespace gdaplanner {
         wildcards.
 	
         \return Boolean value denoting whether this Expression is bound */
-    bool isBound() {
-      return !(this->isVariable() || this->isWildcard());
-    }
+    bool isBound();
     
-    bool isNumber() {
-      return m_tpType == Float || m_tpType == Double || m_tpType == Integer | m_tpType == UnsignedInteger;
-    }
+    bool isNumber();
     
-    unsigned int transformToUnsignedInteger(bool& bTransformed) {
-      unsigned int unValue = 0;
-      
-      switch(m_tpType) {
-      case String: {
-	try {
-	  unValue = std::stoul(this->get<std::string>());
-	  bTransformed = true;
-	} catch(const std::invalid_argument& ia) {
-	  bTransformed = false;
-	}
-      } break;
-	
-      case Float: {
-	unValue = (unsigned int)this->get<float>();
-	bTransformed = true;
-      } break;
-	
-      case Double: {
-	unValue = (unsigned int)this->get<double>();
-	bTransformed = true;
-      } break;
-	
-      case Integer: {
-	unValue = (unsigned int)this->get<int>();
-	bTransformed = true;
-      } break;
-	
-      case UnsignedInteger: {
-	unValue = this->get<unsigned int>();
-	bTransformed = true;
-      } break;
-	
-      default: {
-	// For example List
-	bTransformed = false;
-      } break;
-      }
-      
-      return unValue;
-    }
+    unsigned int transformToUnsignedInteger(bool& bTransformed);
     
-    double transformToDouble(bool& bTransformed) {
-      double dValue = 0;
-      
-      switch(m_tpType) {
-      case String: {
-	try {
-	  dValue = std::stod(this->get<std::string>());
-	  bTransformed = true;
-	} catch(const std::invalid_argument& ia) {
-	  bTransformed = false;
-	}
-      } break;
-	
-      case Float: {
-	dValue = (double)this->get<float>();
-	bTransformed = true;
-      } break;
-	
-      case Double: {
-	dValue = this->get<double>();
-	bTransformed = true;
-      } break;
-	
-      case Integer: {
-	dValue = (double)this->get<int>();
-	bTransformed = true;
-      } break;
-	
-      case UnsignedInteger: {
-	dValue = (double)this->get<unsigned int>();
-	bTransformed = true;
-      } break;
-	
-      default: {
-	// For example List
-	bTransformed = false;
-      } break;
-      }
-      
-      return dValue;
-    }
+    double transformToDouble(bool& bTransformed);
   };
 }
 
