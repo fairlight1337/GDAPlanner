@@ -268,21 +268,37 @@ namespace gdaplanner {
 	  }
 	}
       } else if(exQueryBound.match("(not ?a)", mapResolution)) {
-          if(solPrior.index() == -1) {
-            Expression exA = mapResolution["?a"];
-            Solution solTemp;
+	if(solPrior.index() == -1) {
+	  Expression exA = mapResolution["?a"];
+	  Solution solTemp;
 
-              try {
-                solTemp = this->unify(exA, solPrior, bdgBindings);
-              } catch(SolutionsExhausted seException) {
-                solTemp.setValid(false);
-              }
-
-              if(!solTemp.valid()) {
-                solResult = Solution();
-                solResult.index() = 0;
-              }
-            }
+	  try {
+	    solTemp = this->unify(exA, solPrior, bdgBindings);
+	  } catch(SolutionsExhausted seException) {
+	    solTemp.setValid(false);
+	  }
+	  
+	  if(!solTemp.valid()) {
+	    solResult = Solution();
+	    solResult.index() = 0;
+	  }
+	}
+      } else if(exQueryBound.match("(once ?a)", mapResolution)) {
+	if(solPrior.index() == -1) {
+	  Expression exA = mapResolution["?a"];
+	  Solution solTemp;
+	  
+	  try {
+	    solTemp = this->unify(exA, solPrior, bdgBindings);
+	  } catch(SolutionsExhausted seException) {
+	    solTemp.setValid(false);
+	  }
+	  
+	  if(solTemp.valid()) {
+	    solResult = solTemp;
+	    solResult.index() = 0;
+	  }
+	}
       } else if(exQueryBound.match("(1- ?value ?newvalue)", mapResolution)) {
           Expression exValue = mapResolution["?value"];
           Expression exNewValue = mapResolution["?newvalue"];
