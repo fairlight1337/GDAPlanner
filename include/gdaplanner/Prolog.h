@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __PROLOG_H__
 #define __PROLOG_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 #include <map>
 #include <vector>
 #include <deque>
@@ -16,6 +17,9 @@
 #include <gdaplanner/Expression.h>
 #include <gdaplanner/Printable.h>
 #include <gdaplanner/Solution.h>
+
+
+extern template class std::vector<gdaplanner::Expression>;
 
 
 namespace gdaplanner {

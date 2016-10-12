@@ -1,9 +1,10 @@
+#pragma once
 #ifndef __PREDICATE_H__
 #define __PREDICATE_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 #include <algorithm>
 
 #include <gdaplanner/Expression.h>

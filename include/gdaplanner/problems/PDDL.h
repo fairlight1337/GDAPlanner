@@ -1,14 +1,18 @@
+#pragma once
 #ifndef __PDDL_H__
 #define __PDDL_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 #include <string>
 #include <vector>
 
 #include <gdaplanner/problems/Problem.h>
 #include <gdaplanner/Expression.h>
+
+
+extern template class std::vector<gdaplanner::Expression>;
 
 
 namespace gdaplanner {

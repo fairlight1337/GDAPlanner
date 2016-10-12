@@ -1,13 +1,17 @@
+#pragma once
 #ifndef __ACTION_H__
 #define __ACTION_H__
 
 
 #include <memory>
-#include <iostream>
+#include <iosfwd>
 
 #include <gdaplanner/Expression.h>
 #include <gdaplanner/Predicate.h>
 #include <gdaplanner/Printable.h>
+
+
+extern template class std::vector<gdaplanner::Expression>;
 
 
 namespace gdaplanner {
