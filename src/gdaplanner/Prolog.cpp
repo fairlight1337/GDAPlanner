@@ -50,7 +50,11 @@ namespace gdaplanner {
     
     Expression exQueryBound = exQuery.parametrize(bdgBindings.bindings());
     
-    if(exQueryBound.predicateName() == "and") {
+    Solution solTemp = this->matchLambdaPredicates(m_vecLambdaFacts, exQueryBound, solPrior, bdgBindings);
+    
+    if(solTemp.valid()) {
+      solResult = solTemp;
+    } else if(exQueryBound.predicateName() == "and") {
       if(exQueryBound.size() > 1) { // Otherwise it loops indefinitely.
 	exQueryBound.popFront();
 	std::deque<Solution> dqSolutionStack;
@@ -598,7 +602,7 @@ namespace gdaplanner {
               }
           }
       } else {
-        solResult = this->matchLambdaPredicates(exQueryBound, solPrior, bdgBindings);
+        solResult = this->matchLambdaPredicates(m_vecLambdaPredicates, exQueryBound, solPrior, bdgBindings);
       }
     }
     
@@ -608,15 +612,15 @@ namespace gdaplanner {
     
     return solResult;
   }
-
-  Solution Prolog::matchLambdaPredicates(Expression const& exQuery, Solution const& solPrior, Solution::Bindings const& bdgBindings) {
+  
+  Solution Prolog::matchLambdaPredicates(std::vector<LambdaPredicate>& vecPredicates, Expression const& exQuery, Solution const& solPrior, Solution::Bindings const& bdgBindings) {
     Solution solResult;
     solResult.setValid(false);
     
     Expression const exQuerySanitized = ((Expression&)exQuery).sanitize("_");
     Solution::Bindings bdgSane =  ((Solution::Bindings)bdgBindings).sanitize("_");
     
-    for(LambdaPredicate lpPredicate : m_vecLambdaPredicates) {
+    for(LambdaPredicate lpPredicate : vecPredicates) {
       Solution solTemp = lpPredicate(exQuerySanitized, solPrior, bdgSane);
       
       if(solTemp.valid()) {

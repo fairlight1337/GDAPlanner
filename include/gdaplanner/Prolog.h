@@ -36,6 +36,8 @@ namespace gdaplanner {
     
   private:
     World::Ptr m_wdWorld;
+    
+    std::vector<LambdaPredicate> m_vecLambdaFacts;
     std::vector<LambdaPredicate> m_vecLambdaPredicates;
     
   protected:
@@ -49,7 +51,7 @@ namespace gdaplanner {
     
     Solution unify(Expression const& exQuery, Solution solPrior = Solution(), Solution::Bindings const& bdgBindings = {});
     
-    Solution matchLambdaPredicates(Expression const& exQuery, Solution const& solPrior, Solution::Bindings const& bdgBindings);
+    Solution matchLambdaPredicates(std::vector<LambdaPredicate>& vecPredicates, Expression const& exQuery, Solution const& solPrior, Solution::Bindings const& bdgBindings);
     void addLambdaPredicate(std::string const& strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda);
     void addSimpleLambdaPredicate(std::string const& strPredicate, std::function<void(std::map<std::string, Expression>)> fncLambda);
     void addLambdaPredicate(LambdaPredicate const& lpAdd);
