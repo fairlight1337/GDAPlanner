@@ -50,7 +50,10 @@ namespace gdaplanner {
     
     Expression exQueryBound = exQuery.parametrize(bdgBindings.bindings());
     
-    Solution solTemp = this->matchLambdaPredicates(m_vecLambdaFacts, exQueryBound, solPrior, bdgBindings);
+    Solution solPriorAux = solPrior;
+    if(0 == solPriorAux.indexCount())
+        solPriorAux.index() = -1;
+    Solution solTemp = this->matchLambdaFacts(m_vecLambdaFacts, exQueryBound, solPriorAux, bdgBindings);
     
     if(solTemp.valid()) {
       solResult = solTemp;
@@ -386,6 +389,7 @@ namespace gdaplanner {
 
           solResult.index() = 0;
 
+          /*TODO: check against number of facts, not just 0.*/
           if(0 <= nIndex)
               solResult.setValid(false);
           else if(valueIsInt && (intValue != 0))
@@ -419,6 +423,7 @@ namespace gdaplanner {
           int nIndex = solPrior.index();
 
           solResult.index() = 0;
+          /*TODO: check against number of facts, not just 0.*/
           if(0 <= nIndex)
               solResult.setValid(false);
           else if((!exObject.isVariable()) && (!exObject.isWildcard()))
@@ -496,6 +501,7 @@ namespace gdaplanner {
           std::vector<Expression> exGoalAuxVec; exGoalAuxVec.clear(); exGoalAuxVec.push_back(exGoal);
           std::vector<Expression> exStateAuxVec; exStateAuxVec.clear(); exStateAuxVec.push_back(exState);
 
+          /*TODO: check against number of facts, not just 0.*/
           if((solPrior.index() == -1) && (exGoal.isBound()) && (exState.isBound()))
           {
               bool allMatch = true;
@@ -539,6 +545,7 @@ namespace gdaplanner {
           std::vector<Expression> exEffectsAuxVec; exEffectsAuxVec.clear(); exEffectsAuxVec.push_back(exEffects);
           std::vector<Expression> exStateAuxVec; exStateAuxVec.clear(); exStateAuxVec.push_back(exState);
 
+          /*TODO: check against number of facts, not just 0.*/
           if((solPrior.index() == -1) && (exEffects.isBound()) && (exState.isBound())
                   && (!exNewState.isBound()))
           {
@@ -613,6 +620,23 @@ namespace gdaplanner {
     return solResult;
   }
   
+  Solution Prolog::matchLambdaFacts(std::vector<LambdaPredicate> const& vecFacts, Expression const& exQuery, Solution const& solPrior, Solution::Bindings const& bdgBindings) const
+  {
+      Solution solResult;
+      solResult.setValid(false);
+
+      int maxK = (int)vecFacts.size();
+      int k = solPrior.index() + 1;
+      bool haveSolution = false;
+      for(; (!haveSolution) && (k < maxK); k++)
+      {
+          solResult = vecFacts[k](exQuery, solPrior, bdgBindings);
+          solResult.index() = k;
+          haveSolution = solResult.valid();
+      }
+      return solResult;
+  }
+
   Solution Prolog::matchLambdaPredicates(std::vector<LambdaPredicate>& vecPredicates, Expression const& exQuery, Solution const& solPrior, Solution::Bindings const& bdgBindings) {
     Solution solResult;
     solResult.setValid(false);
@@ -942,6 +966,36 @@ namespace gdaplanner {
 	}
 	
 	return solResult;
+      });
+  }
+
+  void Prolog::addFact(std::string const& strFact)
+  {
+      Expression exFact = Expression::parseString(strFact)[0];
+      addFact(exFact);
+  }
+  void Prolog::addFact(Expression const& exFact)
+  {
+      int maxK = (int)m_vecLambdaFacts.size();
+      m_vecLambdaFacts.push_back([this, exFact, maxK](Expression exQuery, Solution solPrior, Solution::Bindings bdgBindings) -> Solution {
+          if(maxK <= solPrior.index())
+          {
+              Solution solResult;
+              solResult.setValid(false);
+              solResult.index() = maxK;
+              return solResult;
+          }
+          Solution solResult;
+          bool matchingFact;
+          std::cout << "FACTCHECK " << exQuery << " vs " << exFact.toString().c_str() << "\n";
+          std::map<std::string, Expression> mapBdgs = exQuery.parametrize(bdgBindings.bindings()).resolve(exFact, matchingFact);
+          for(std::map<std::string, Expression>::const_iterator it = mapBdgs.begin();
+              it != mapBdgs.end(); it++)
+              std::cout << it->first << " " << it->second.toString().c_str() << "\n";
+          solResult.setValid(matchingFact);
+          solResult.bindings() = mapBdgs;
+          solResult.index() = maxK;
+          return solResult;
       });
   }
 

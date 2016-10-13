@@ -26,24 +26,24 @@ namespace gdaplanner {
       Solution solInitPredicates = plProlog->query("(foreach ?a (init-predicate ?a) ?predicates)");
       
       if(solInitPredicates.valid()) {
-	std::cout << solInitPredicates;
+          std::cout << solInitPredicates;
       } else {
-	std::cerr << "Invalid: Init predicates" << std::endl;
+          std::cerr << "Invalid: Init predicates" << std::endl;
       }
       
       Solution solActions = plProlog->query("(foreach ?a (action ?a) ?actions)");
       
       if(solActions.valid()) {
-	std::cout << solActions;
+          std::cout << solActions;
       } else {
-	std::cerr << "Invalid: Actions" << std::endl;
+          std::cerr << "Invalid: Actions" << std::endl;
       }
       
       plProlog->addPredicate("(do-something ?a ?b)",
-			     "(format \"This: ~a, ~a~%\" ?a ?b)",
-			     "(format \"This again: ~a, ~a~%\" ?a ?b)",
-			     "(member ?a ?b)",
-			     "(format \"Got through!~%\")");
+                             "(format \"This: ~a, ~a~%\" ?a ?b)",
+                             "(format \"This again: ~a, ~a~%\" ?a ?b)",
+                             "(member ?a ?b)",
+                             "(format \"Got through!~%\")");
       
       Solution solPredicate = plProlog->query("(do-something 2 (1 4 2))");
       std::cout << solPredicate;
