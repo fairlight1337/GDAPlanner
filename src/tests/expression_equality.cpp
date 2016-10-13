@@ -25,7 +25,7 @@ bool testEquality(std::string strA, std::string strB, unsigned int unExpectedRes
 }
 
 
-int main(int argc, char** argv) {
+int main(__attribute__((unused)) int argc, __attribute__((unused)) char** argv) {
   int nReturnvalue = EXIT_FAILURE;
   
   g_gdapPlanner = GDAPlanner::create();
