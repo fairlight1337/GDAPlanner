@@ -218,6 +218,15 @@ namespace gdaplanner {
 	\return Length of list stored in this Expression */
     unsigned int size() const;
     
+    /** \brief Converts a conjunction of expressions or a single expression into
+     * a list of expressions.
+
+     Examples:
+         (and ?x ?y) becomes (?x ?y);
+         (some-predicate a b) becomes ((some-predicate a b))
+    \return The new expression*/
+    Expression conjunctionToList(void) const;
+
     /** \brief Returns a vector containing names of the variables in the expression
 	
 	List all variables occurring anywhere in the expression. Variable names begin

@@ -781,6 +781,18 @@ namespace gdaplanner {
     }
   }
   
+  Expression Expression::conjunctionToList(void) const
+  {
+      unsigned int maxE = this->subExpressions().size();
+      Expression retq;
+      std::string aux = "(";
+      if((maxE <= 1) || (this->subExpressions()[0].toString() != "and"))
+          return Expression::parseString(aux + this->toString() + ")")[0];
+      for(unsigned int e = 1; e < maxE; e++)
+          retq.add(this->subExpressions()[e]);
+      return retq;
+  }
+
   void Expression::getVarNames(std::vector<std::string> & varNames) const
   {
       if(isVariable())

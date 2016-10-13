@@ -46,10 +46,13 @@ namespace gdaplanner {
       return m_strDomain;
     }
     
-    std::vector<PDDL::Object> PDDL::objects() {
+    std::vector<PDDL::Object>& PDDL::objects() {
       return m_vecObjects;
     }
-    
+    std::vector<PDDL::Object> const& PDDL::objects() const{
+      return m_vecObjects;
+    }
+
     std::vector<Expression> PDDL::initExpressions() {
       return m_vecInit;
     }
