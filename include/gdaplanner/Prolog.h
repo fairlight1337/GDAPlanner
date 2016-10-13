@@ -51,6 +51,7 @@ namespace gdaplanner {
     
     Solution unify(Expression const& exQuery, Solution solPrior = Solution(), Solution::Bindings const& bdgBindings = {});
     
+    Solution matchLambdaFacts(std::vector<LambdaPredicate> const& vecPredicates, Expression const& exQuery, Solution const& solPrior, Solution::Bindings const& bdgBindings) const;
     Solution matchLambdaPredicates(std::vector<LambdaPredicate>& vecPredicates, Expression const& exQuery, Solution const& solPrior, Solution::Bindings const& bdgBindings);
     void addLambdaPredicate(std::string const& strPredicate, std::function<bool(std::map<std::string, Expression>)> fncLambda);
     void addSimpleLambdaPredicate(std::string const& strPredicate, std::function<void(std::map<std::string, Expression>)> fncLambda);
@@ -80,6 +81,9 @@ namespace gdaplanner {
     void addPredicate(std::string const& strPredicate, std::vector<std::string> const& vecElements);
     
     void addPredicate(Expression const& exPredicate, std::vector<Expression> const& vecElements);
+
+    void addFact(std::string const& strFact);
+    void addFact(Expression const& exFact);
     
     bool loadFile(std::string strFilepath);
     
