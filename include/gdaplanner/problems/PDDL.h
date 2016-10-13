@@ -61,7 +61,8 @@ namespace gdaplanner {
       /** \brief Return problem domain */
       std::string domain();
       /** \brief Return list of objects */
-      std::vector<Object> objects();
+      std::vector<Object>& objects();
+      std::vector<Object>const& objects() const;
       /** \brief Return list of initialization expressions */
       std::vector<Expression> initExpressions();
       /** \brief Return this problem's goal */
