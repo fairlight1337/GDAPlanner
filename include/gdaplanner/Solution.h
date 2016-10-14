@@ -89,10 +89,11 @@ namespace gdaplanner {
     std::vector<Solution> m_vecSubSolutions;
     std::vector<int> m_vecIndices;
     Bindings m_bdgBindings;
+    unsigned int m_nextFactToTry;
     bool m_bValid;
     
   public:
-    Solution() : m_bValid(true) {}
+    Solution() : m_nextFactToTry(0), m_bValid(true) {}
     ~Solution() {}
     
     virtual std::string toString() const override {
@@ -122,11 +123,28 @@ namespace gdaplanner {
       return sts.str();
     }
     
+    unsigned int& nextFactToTry(void)
+    {
+        return m_nextFactToTry;
+    }
+    unsigned int const& nextFactToTry(void) const
+    {
+        return m_nextFactToTry;
+    }
+
     Bindings& bindings() {
-      return m_bdgBindings;
+        unsigned int maxK = m_vecSubSolutions.size();
+        if(!maxK)
+            return m_bdgBindings;
+        else
+            return m_vecSubSolutions[maxK - 1].bindings();
     }
     Bindings const& bindings() const {
-      return m_bdgBindings;
+        unsigned int maxK = m_vecSubSolutions.size();
+        if(!maxK)
+            return m_bdgBindings;
+        else
+            return m_vecSubSolutions[maxK - 1].bindings();
     }
 
     unsigned int indexCount() const {

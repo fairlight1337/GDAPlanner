@@ -389,7 +389,6 @@ namespace gdaplanner {
 
           solResult.index() = 0;
 
-          /*TODO: check against number of facts, not just 0.*/
           if(0 <= nIndex)
               solResult.setValid(false);
           else if(valueIsInt && (intValue != 0))
@@ -423,7 +422,6 @@ namespace gdaplanner {
           int nIndex = solPrior.index();
 
           solResult.index() = 0;
-          /*TODO: check against number of facts, not just 0.*/
           if(0 <= nIndex)
               solResult.setValid(false);
           else if((!exObject.isVariable()) && (!exObject.isWildcard()))
@@ -501,7 +499,6 @@ namespace gdaplanner {
           std::vector<Expression> exGoalAuxVec; exGoalAuxVec.clear(); exGoalAuxVec.push_back(exGoal);
           std::vector<Expression> exStateAuxVec; exStateAuxVec.clear(); exStateAuxVec.push_back(exState);
 
-          /*TODO: check against number of facts, not just 0.*/
           if((solPrior.index() == -1) && (exGoal.isBound()) && (exState.isBound()))
           {
               bool allMatch = true;
@@ -545,7 +542,6 @@ namespace gdaplanner {
           std::vector<Expression> exEffectsAuxVec; exEffectsAuxVec.clear(); exEffectsAuxVec.push_back(exEffects);
           std::vector<Expression> exStateAuxVec; exStateAuxVec.clear(); exStateAuxVec.push_back(exState);
 
-          /*TODO: check against number of facts, not just 0.*/
           if((solPrior.index() == -1) && (exEffects.isBound()) && (exState.isBound())
                   && (!exNewState.isBound()))
           {
@@ -625,13 +621,14 @@ namespace gdaplanner {
       Solution solResult;
       solResult.setValid(false);
 
-      int maxK = (int)vecFacts.size();
-      int k = solPrior.index() + 1;
+      unsigned int maxK = vecFacts.size();
+      unsigned int k = solPrior.nextFactToTry() + 1;
       bool haveSolution = false;
       for(; (!haveSolution) && (k < maxK); k++)
       {
           solResult = vecFacts[k](exQuery, solPrior, bdgBindings);
-          solResult.index() = k;
+          solResult.index() = 0;
+          solResult.nextFactToTry() = k + 1;
           haveSolution = solResult.valid();
       }
       return solResult;
@@ -645,36 +642,35 @@ namespace gdaplanner {
     Solution::Bindings bdgSane =  ((Solution::Bindings)bdgBindings).sanitize("_");
     
     for(LambdaPredicate lpPredicate : vecPredicates) {
-      Solution solTemp = lpPredicate(exQuerySanitized, solPrior, bdgSane);
-      
-      if(solTemp.valid()) {
-	std::vector<std::string> vecVariables;
-	exQuery.getVarNames(vecVariables);
-	
-	std::map<std::string, Expression> mapBindings = solTemp.finalBindings();
-	Solution::Bindings b = Solution::Bindings(mapBindings);
-	
-	std::map<std::string, Expression> mapBindingsClean;
-	for(std::string strVar : vecVariables) {
-	  std::string strVarSane = strVar + "_";
-	  
-	  if(mapBindings.find(strVar) != mapBindings.end()) {
-	    mapBindingsClean[strVar] = mapBindings[mapBindings[strVarSane].get<std::string>()];
-	  }
-	}
-	
-	Solution::Bindings bdgFinal = bdgSane.desanitize("_");
-	for(std::string strVar : vecVariables) {
-	  bdgFinal[strVar] = mapBindings[mapBindings[strVar + "_"].get<std::string>()];
-	}
-	
-	solResult = solTemp;
-	solResult.setBindings(bdgFinal);
-	
-	break;
-      }
+        Solution solTemp = lpPredicate(exQuerySanitized, solPrior, bdgSane);
+
+        if(solTemp.valid()) {
+            std::vector<std::string> vecVariables;
+            exQuery.getVarNames(vecVariables);
+
+            std::map<std::string, Expression> mapBindings = solTemp.finalBindings();
+            Solution::Bindings b = Solution::Bindings(mapBindings);
+
+            std::map<std::string, Expression> mapBindingsClean;
+            for(std::string strVar : vecVariables) {
+              std::string strVarSane = strVar + "_";
+
+              if(mapBindings.find(strVar) != mapBindings.end()) {
+                mapBindingsClean[strVar] = mapBindings[mapBindings[strVarSane].get<std::string>()];
+              }
+            }
+            Solution::Bindings bdgFinal = bdgSane.desanitize("_");
+            for(std::string strVar : vecVariables) {
+              bdgFinal[strVar] = mapBindings[mapBindings[strVar + "_"].get<std::string>()];
+            }
+
+            solResult = solTemp;
+            solResult.setBindings(bdgFinal);
+
+            break;
+        }
     }
-    
+
     return solResult;
   }
 
@@ -987,11 +983,11 @@ namespace gdaplanner {
           }
           Solution solResult;
           bool matchingFact;
-          std::cout << "FACTCHECK " << exQuery << " vs " << exFact.toString().c_str() << "\n";
+          //std::cout << "FACTCHECK " << exQuery << " vs " << exFact.toString().c_str() << "\n";
           std::map<std::string, Expression> mapBdgs = exQuery.parametrize(bdgBindings.bindings()).resolve(exFact, matchingFact);
-          for(std::map<std::string, Expression>::const_iterator it = mapBdgs.begin();
-              it != mapBdgs.end(); it++)
-              std::cout << it->first << " " << it->second.toString().c_str() << "\n";
+          //for(std::map<std::string, Expression>::const_iterator it = mapBdgs.begin();
+          //    it != mapBdgs.end(); it++)
+          //    std::cout << it->first << " " << it->second.toString().c_str() << "\n";
           solResult.setValid(matchingFact);
           solResult.bindings() = mapBdgs;
           solResult.index() = maxK;
