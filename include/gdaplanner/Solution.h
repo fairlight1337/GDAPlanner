@@ -123,10 +123,18 @@ namespace gdaplanner {
     }
     
     Bindings& bindings() {
-      return m_bdgBindings;
+        unsigned int maxK = m_vecSubSolutions.size();
+        if(!maxK)
+            return m_bdgBindings;
+        else
+            return m_vecSubSolutions[maxK - 1].bindings();
     }
     Bindings const& bindings() const {
-      return m_bdgBindings;
+        unsigned int maxK = m_vecSubSolutions.size();
+        if(!maxK)
+            return m_bdgBindings;
+        else
+            return m_vecSubSolutions[maxK - 1].bindings();
     }
 
     unsigned int indexCount() const {
