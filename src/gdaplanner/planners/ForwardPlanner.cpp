@@ -84,7 +84,7 @@ namespace gdaplanner {
               for(unsigned int v = 0; v < maxV; v++)
                   mapBdgs[varNames[v]] = Expression::parseString(objects[objIndex[v]].strName)[0];
 	      
-	      if(ctxContext->predicateArgumentsValid(exPrExp.parametrize(mapBdgs), prbProblem)) {
+	      if(ctxContext->actionArgumentsValid(exPrExp.parametrize(mapBdgs), prbProblem)) {
 		std::string factString = "(available-action ";
 		factString += exPrExp.parametrize(mapBdgs).toString() + " ";
 		factString += exPrecs.parametrize(mapBdgs).toString() + " ";

@@ -31,6 +31,10 @@ namespace gdaplanner {
     return exAction;
   }
   
+  Predicate::Ptr Action::predicate() {
+    return m_pdPredicate;
+  }
+  
   std::string Action::toString() const {
     std::stringstream sts;
     

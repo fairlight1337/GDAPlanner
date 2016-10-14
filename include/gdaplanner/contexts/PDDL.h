@@ -71,7 +71,7 @@ namespace gdaplanner {
       /** \brief Return the type of a constant */
       std::string constantType(std::string strConstant);
       
-      bool predicateArgumentsValid(Expression exPredicate, problems::PDDL::Ptr prbProblem);
+      bool actionArgumentsValid(Expression exPredicate, problems::PDDL::Ptr prbProblem);
       
       /** \brief Format stream output */
       virtual std::string toString() const override;
