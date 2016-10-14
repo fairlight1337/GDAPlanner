@@ -10,6 +10,7 @@
 #include <gdaplanner/contexts/StatefulContext.h>
 #include <gdaplanner/Predicate.h>
 #include <gdaplanner/Action.h>
+#include <gdaplanner/problems/PDDL.h>
 
 
 namespace gdaplanner {
@@ -69,6 +70,8 @@ namespace gdaplanner {
       
       /** \brief Return the type of a constant */
       std::string constantType(std::string strConstant);
+      
+      bool predicateArgumentsValid(Expression exPredicate, problems::PDDL::Ptr prbProblem);
       
       /** \brief Format stream output */
       virtual std::string toString() const override;

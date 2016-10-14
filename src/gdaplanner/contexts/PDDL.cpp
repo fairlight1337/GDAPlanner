@@ -253,5 +253,11 @@ namespace gdaplanner {
     std::string PDDL::constantType(std::string strConstant) {
       return m_mapConstants[strConstant];
     }
+    
+    bool PDDL::predicateArgumentsValid(Expression exPredicate, problems::PDDL::Ptr prbProblem) {
+      // ...
+      
+      return true;
+    }
   }
 }

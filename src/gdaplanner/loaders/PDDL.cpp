@@ -117,7 +117,6 @@ namespace gdaplanner {
 			  std::string strType = exDetail[0].get<std::string>();
 			  for(Expression exObject : vecObject) {
 			    prbPrb->addObject(exObject.get<std::string>(), strType);
-			    std::cout << "Add: " << exObject.get<std::string>() << " (" << strType << ")" << std::endl;
 			  }
 			  
 			  exDetail.popFront();
