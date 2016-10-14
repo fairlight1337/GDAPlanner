@@ -1,7 +1,7 @@
 (define (domain tablesetting)
   (:requirements :typing)
-  (:types household-object location)
-  (:predicates (at ?object - household-object ?location - location))
+  (:types object location)
+  (:predicates (at ?object - object ?location - location))
   (:constants)
   (:functions (location-of ?object) - location
               (total-cost) - number)

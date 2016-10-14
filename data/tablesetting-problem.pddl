@@ -1,7 +1,7 @@
 (define (problem set-mealtable)
   (:domain tablesetting)
-  (:objects plate0 plate1 - household-object ;; Polymorphism via ontology maybe?
-	    cup0 cup1 - household-object
+  (:objects plate0 plate1 - object ;; Polymorphism via ontology maybe?
+	    cup0 cup1 - object
 	    countertop-sink countertop-island table - location)
   (:init (not (found plate0))
 	 (not (found plate1))
