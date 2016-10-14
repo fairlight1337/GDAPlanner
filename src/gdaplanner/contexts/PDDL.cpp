@@ -253,5 +253,39 @@ namespace gdaplanner {
     std::string PDDL::constantType(std::string strConstant) {
       return m_mapConstants[strConstant];
     }
+    
+    bool PDDL::actionArgumentsValid(Expression exPredicate, problems::PDDL::Ptr prbProblem) {
+      for(Action::Ptr& acAction : m_vecActions) {
+	std::map<std::string, Expression> mapBindings;
+	
+	if(acAction->predicateExpression().matchEx(exPredicate, mapBindings)) {
+	  // mapBindings now contains the variable bindings for all
+	  // arguments in the Action's predicate signature. Next up
+	  // is: Check their type individually. If all match, return
+	  // true. If not, return false.
+	  
+	  bool bAllGood = true;
+	  
+	  for(std::pair<std::string, Expression> prBinding : mapBindings) {
+	    std::string strVariableContent = prBinding.second.get<std::string>();
+	    
+	    if(strVariableContent != "") {
+	      // What does the predicate want?
+	      std::string strExpectedType = acAction->predicate()->type(prBinding.first);
+	      std::string strActualType = prbProblem->objectType(strVariableContent);
+	      
+	      if(strExpectedType != strActualType) {
+		bAllGood = false;
+		break;
+	      }
+	    }
+	  }
+	  
+	  return bAllGood;
+	}
+      }
+      
+      return false;
+    }
   }
 }

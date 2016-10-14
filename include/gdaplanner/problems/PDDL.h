@@ -70,6 +70,8 @@ namespace gdaplanner {
       /** \brief Return this problem's metric */
       Expression metric();
       
+      std::string objectType(std::string const strName) const;
+      
       /** \brief Format stream output */
       virtual std::string toString() const override;
       

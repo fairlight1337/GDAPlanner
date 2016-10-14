@@ -83,14 +83,17 @@ namespace gdaplanner {
               std::map<std::string, Expression> mapBdgs;
               for(unsigned int v = 0; v < maxV; v++)
                   mapBdgs[varNames[v]] = Expression::parseString(objects[objIndex[v]].strName)[0];
-              std::string factString = "(available-action ";
-              factString += exPrExp.parametrize(mapBdgs).toString() + " ";
-              factString += exPrecs.parametrize(mapBdgs).toString() + " ";
-              factString += exEffs.parametrize(mapBdgs).toString() + " ";
-              factString += ")";
-              std::cout << factString << "\n";
-              plProlog->addFact(factString);
-
+	      
+	      if(ctxContext->actionArgumentsValid(exPrExp.parametrize(mapBdgs), prbProblem)) {
+		std::string factString = "(available-action ";
+		factString += exPrExp.parametrize(mapBdgs).toString() + " ";
+		factString += exPrecs.parametrize(mapBdgs).toString() + " ";
+		factString += exEffs.parametrize(mapBdgs).toString() + " ";
+		factString += ")";
+		std::cout << factString << "\n";
+		plProlog->addFact(factString);
+	      }
+	      
               bool done = false;
               for(unsigned int v = maxV; !done; )
                   if(!v)
