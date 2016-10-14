@@ -114,12 +114,12 @@ namespace gdaplanner {
 			if(exDetail.size() > 1) {
 			  exDetail.popFront();
 			  
-			  if(exDetail.size() > 0) {
-			    std::string strType = exDetail[0].get<std::string>();
-			    for(Expression exObject : vecObject) {
-			      prbPrb->addObject(exObject.get<std::string>(), strType);
-			    }
+			  std::string strType = exDetail[0].get<std::string>();
+			  for(Expression exObject : vecObject) {
+			    prbPrb->addObject(exObject.get<std::string>(), strType);
 			  }
+			  
+			  exDetail.popFront();
 			} else {
 			  break;
 			}

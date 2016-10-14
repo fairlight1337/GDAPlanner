@@ -65,6 +65,16 @@ namespace gdaplanner {
       return m_exMetric;
     }
     
+    std::string PDDL::objectType(std::string const strName) const {
+      for(Object objObject : m_vecObjects) {
+	if(objObject.strName == strName) {
+	  return objObject.strType;
+	}
+      }
+      
+      return "";
+    }
+    
     std::string PDDL::toString() const {
       std::stringstream sts;
       
