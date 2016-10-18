@@ -116,6 +116,12 @@ namespace gdaplanner {
                              "(= ?s ?f)",
                              "(= ?cp ?p)");
       plProlog->addPredicate("(fp ?s ?g ?f ?cp ?p ?d)",
+                             "(available-constructed-action ?act ?prec ?eff)",
+                             "(holds ?prec ?s)",
+                             "(apply ?eff ?s ?f)",
+                             "(holds ?g ?f)",
+                             "(append ?act ?cp ?p)");
+      plProlog->addPredicate("(fp ?s ?g ?f ?cp ?p ?d)",
                              "(1- ?d ?nd)",
                              "(available-action ?act ?prec ?eff)",
                              "(holds ?prec ?s)",
@@ -126,6 +132,44 @@ namespace gdaplanner {
                              "(fp ?s ?g ?f () ?p ?d)");
 
       /* Run fp queries*/
+      std::vector<Expression> initExpressions = prbProblem->initExpressions();
+      unsigned int maxS = initExpressions.size();
+      Expression exGoals = prbProblem->goal().conjunctionToList();
+
+      std::string strPlanQuery = "(fp (";
+      for(unsigned int s = 0; s < maxS; s++)
+          strPlanQuery += initExpressions[s].toString() + " ";
+      strPlanQuery += ") ";
+      strPlanQuery += exGoals.toString();
+      strPlanQuery += " ?f ?p ";
+
+      /* TODO: Need to decide on a depth limit to cut-off at.*/
+      /* Currently, set to 5. Note that because the branching factor is
+         going to be in the order of several tens, we can expect the search space to grow
+         very fast. At a depth of 5 and branching factor of 100, there are 10^10 possible
+         plans!*/
+      /* TODO: Need to decide on a criterion to stop looking for solutions.*/
+      /* Currently, planner stops when the first planner is found, ie. the one
+         with the fewest actions.*/
+      bool shouldStop = false;
+      Solution solResult;
+      solResult.setValid(false);
+      for(int depth = 0; (!shouldStop) && (depth < 5); depth++)
+      {
+          std::string strQuery = strPlanQuery + " " + std::to_string(depth) + ")";
+          Solution solPrior;
+          while((!shouldStop) && solPrior.valid())
+          {
+              solPrior = plProlog->query(strQuery, solPrior);
+              if(solPrior.valid())
+              {
+                  shouldStop = true;
+                  solResult = solPrior;
+              }
+          }
+      }
+
+      /*TODO: retrieve result*/
 
       /*
       std::cout << "\n\n";
