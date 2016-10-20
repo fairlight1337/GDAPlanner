@@ -24,8 +24,8 @@ namespace gdaplanner {
       ForwardPlanner();
       ~ForwardPlanner();
       
-      void plan(problems::PDDL::Ptr prbProblem, contexts::PDDL::Ptr ctxContext);
-      void plan(problems::Problem::Ptr prbProblem, contexts::Context::Ptr ctxContext) override;
+      Solution::Ptr plan(problems::PDDL::Ptr prbProblem, contexts::PDDL::Ptr ctxContext, Solution::Ptr solPrior = Solution::create());
+      Solution::Ptr plan(problems::Problem::Ptr prbProblem, contexts::Context::Ptr ctxContext, Solution::Ptr solPrior = Solution::create()) override;
       
       template<class ... Args>
 	static ForwardPlanner::Ptr create(Args ... args) {
