@@ -25,7 +25,7 @@ namespace gdaplanner {
     Planner();
     ~Planner();
     
-    virtual void plan(problems::Problem::Ptr prbProblem, contexts::Context::Ptr ctxContext) = 0;
+    virtual Solution::Ptr plan(problems::Problem::Ptr prbProblem, contexts::Context::Ptr ctxContext, Solution::Ptr solPrior = Solution::create()) = 0;
     
     template<class ... Args>
       static Planner::Ptr create(Args ... args) {
