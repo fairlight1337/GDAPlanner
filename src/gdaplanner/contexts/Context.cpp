@@ -21,6 +21,20 @@ namespace gdaplanner {
     void Context::action(Expression exPreconditions, Expression exEffects) {
       m_vecActions.push_back(Action::create(nullptr, exPreconditions, exEffects));
     }
+    void Context::action(std::string const& name, std::vector<std::string> const& paramNames, std::vector<std::string> const& paramTypes, std::string const& preconditions, std::string const& effects)
+    {
+        std::string strPredicate = "(";
+        strPredicate += name;
+        unsigned int maxK = paramNames.size();
+        for(unsigned int k = 0; k < maxK; k++)
+            strPredicate += " " + paramNames[k];
+        strPredicate += ")";
+        Predicate::Ptr ptrPredicate = Predicate::create(Expression::parseString(strPredicate)[0]);
+        for(unsigned int k = 0; k < maxK; k++)
+            ptrPredicate->setType(paramNames[k], paramTypes[k]);
+        m_vecActions.push_back(Action::create(ptrPredicate, Expression::parseString(preconditions)[0], Expression::parseString(effects)[0]));
+    }
+
   
     void Context::state(Expression exState, Expression exPreconditions) {
       m_vecStates.push_back(State::create(exState, exPreconditions));

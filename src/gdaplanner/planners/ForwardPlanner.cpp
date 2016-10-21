@@ -152,48 +152,20 @@ namespace gdaplanner {
       /* Currently, planner stops when the first planner is found, ie. the one
          with the fewest actions.*/
       bool shouldStop = false;
-      Solution solResult;
-      solResult.setValid(false);
+      Solution::Ptr solResult = Solution::create();
+      solResult->setValid(false);
       for(int depth = 0; (!shouldStop) && (depth < 5); depth++)
       {
           std::string strQuery = strPlanQuery + " " + std::to_string(depth) + ")";
-          Solution solPrior;
-          while((!shouldStop) && solPrior.valid())
+          while((!shouldStop) && solPrior->valid())
           {
-              solPrior = plProlog->query(strQuery, solPrior);
-              if(solPrior.valid())
-              {
+              *solResult = plProlog->query(strQuery, *solPrior);
+              if(solPrior->valid())
                   shouldStop = true;
-                  solResult = solPrior;
-              }
           }
       }
 
-      /*TODO: retrieve result*/
-
-      /*
-      std::cout << "\n\n";
-      Expression f = Expression::parseString("(not (found ?x))")[0];
-      Expression nf = Expression::parseString("(not (found plate0))")[0];
-      bool b;
-      std::map<std::string, Expression> mapBdgs = f.resolve(nf, b);
-      for(std::map<std::string, Expression>::const_iterator it = mapBdgs.begin();
-          it != mapBdgs.end(); it++)
-          std::cout << b << " " << it->first << " " << it->second.toString().c_str() << "\n";
-      */
-      
-      /*
-      plProlog->addPredicate("(do-something ?a ?b)",
-                             "(format \"This: ~a, ~a~%\" ?a ?b)",
-                             "(format \"This again: ~a, ~a~%\" ?a ?b)",
-                             "(member ?a ?b)",
-                             "(format \"Got through!~%\")");
-      
-      Solution solPredicate = plProlog->query("(do-something 2 (1 4 2))");
-      std::cout << solPredicate;
-      */
-      
-      return Solution::create();
+      return solResult;
     }
     
     Solution::Ptr ForwardPlanner::plan(problems::Problem::Ptr prbProblem, contexts::Context::Ptr ctxContext, Solution::Ptr solPrior) {
