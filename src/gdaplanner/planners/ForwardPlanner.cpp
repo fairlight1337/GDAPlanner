@@ -12,7 +12,7 @@ namespace gdaplanner {
     ForwardPlanner::~ForwardPlanner() {
     }
     
-    void ForwardPlanner::plan(problems::PDDL::Ptr prbProblem, contexts::PDDL::Ptr ctxContext) {
+    Solution::Ptr ForwardPlanner::plan(problems::PDDL::Ptr prbProblem, contexts::PDDL::Ptr ctxContext, Solution::Ptr solPrior) {
       World::Ptr wdWorld = World::create();
       Prolog::Ptr plProlog = Prolog::create(wdWorld);
       
@@ -192,10 +192,12 @@ namespace gdaplanner {
       Solution solPredicate = plProlog->query("(do-something 2 (1 4 2))");
       std::cout << solPredicate;
       */
+      
+      return Solution::create();
     }
     
-    void ForwardPlanner::plan(problems::Problem::Ptr prbProblem, contexts::Context::Ptr ctxContext) {
-      this->plan(std::dynamic_pointer_cast<problems::PDDL>(prbProblem), std::dynamic_pointer_cast<contexts::PDDL>(ctxContext));
+    Solution::Ptr ForwardPlanner::plan(problems::Problem::Ptr prbProblem, contexts::Context::Ptr ctxContext, Solution::Ptr solPrior) {
+      return this->plan(std::dynamic_pointer_cast<problems::PDDL>(prbProblem), std::dynamic_pointer_cast<contexts::PDDL>(ctxContext), solPrior);
     }
   }
 }
