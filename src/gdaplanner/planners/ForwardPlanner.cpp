@@ -12,10 +12,197 @@ namespace gdaplanner {
     ForwardPlanner::~ForwardPlanner() {
     }
     
+
+    bool holds(Expression const& goal, Expression const& state, std::map<std::string, Expression> & bdgs)
+    {
+        Expression goalP = goal.parametrize(bdgs);
+        Expression stateP = state.parametrize(bdgs);
+
+        std::vector<Expression> exGoalAuxVec; exGoalAuxVec.clear(); exGoalAuxVec.push_back(goalP);
+        std::vector<Expression> exStateAuxVec; exStateAuxVec.clear(); exStateAuxVec.push_back(stateP);
+
+        if((goalP.isBound()) && (stateP.isBound()))
+        {
+            bool allMatch = true;
+            if(goalP.type() != Expression::List)
+                goalP = Expression(exGoalAuxVec);
+            if(stateP.type() != Expression::List)
+                stateP = Expression(exStateAuxVec);
+
+            int maxG = goalP.subExpressions().size();
+            int maxS = stateP.subExpressions().size();
+            std::map<std::string, Expression> collBindings; collBindings.clear();
+            for(int g = 0; allMatch && (g < maxG); g++)
+            {
+                bool found = false;
+                for(int s = 0; (!found) && (s < maxS); s++)
+                {
+                    std::map<std::string, Expression> newBindings; newBindings.clear();
+                    newBindings = goalP.subExpressions()[g].resolve(stateP.subExpressions()[s], found);
+                    for(int k = 0; found && (k < maxG); k++)
+                    {
+                        goalP.subExpressions()[k] = goalP.subExpressions()[k].parametrize(newBindings);
+                    }
+                    for(std::map<std::string, Expression>::const_iterator it = newBindings.begin();
+                        it != newBindings.end(); it++)
+                        collBindings.insert(std::pair<std::string, Expression>(it->first, it->second));
+                }
+                allMatch = found;
+            }
+            if(allMatch)
+                for(std::map<std::string, Expression>::const_iterator it = collBindings.begin();
+                    it != collBindings.end(); it++)
+                    bdgs.insert(std::pair<std::string, Expression>(it->first, it->second));
+
+            return allMatch;
+        }
+        return false;
+    }
+    bool holds(Expression const& goal, Expression const& state)
+    {
+        std::map<std::string, Expression> bdgs;
+        return holds(goal, state, bdgs);
+    }
+
+    void updateState(Expression const& effects, Expression const& state, Expression & newState, std::map<std::string, Expression> & bdgs)
+    {
+        Expression stateP = state.parametrize(bdgs);
+        Expression effectsP = effects.parametrize(bdgs);
+        std::vector<Expression> exEffectsAuxVec; exEffectsAuxVec.clear(); exEffectsAuxVec.push_back(effectsP);
+        std::vector<Expression> exStateAuxVec; exStateAuxVec.clear(); exStateAuxVec.push_back(stateP);
+
+        if((effectsP.isBound()) && (stateP.isBound()))
+        {
+            std::map<std::string, Expression> bindings; bindings.clear();
+
+            if(effectsP.type() != Expression::List)
+                effectsP = Expression(exEffectsAuxVec);
+            if(stateP.type() != Expression::List)
+                stateP = Expression(exStateAuxVec);
+
+            int maxE = effectsP.size();
+            for(int e = 0; e < maxE; e++)
+            {
+                Expression crEffect = effectsP.subExpressions()[e];
+                Expression crNegEffect = crEffect.negate();
+                int maxS = stateP.subExpressions().size();
+                bool found = false;
+                for(int s = 0; (!found) && (s < maxS); s++)
+                {
+                    std::map<std::string, Expression> bindings; bindings.clear();
+                    bindings = crEffect.resolve(stateP.subExpressions()[s], found);
+                    if(found)
+                        for(int k = 0; k < maxE; k++)
+                            effectsP.subExpressions()[k] = effectsP.subExpressions()[k].parametrize(bindings);
+                    else
+                    {
+                        bindings.clear();
+                        bool negated = false;
+                        bindings = crNegEffect.resolve(stateP.subExpressions()[s], negated);
+                        if(negated)
+                        {
+                            crEffect = crEffect.parametrize(bindings);
+                            crNegEffect = crNegEffect.parametrize(bindings);
+                            stateP.subExpressions()[s] = Expression("");
+                            for(int k = 0; k < maxE; k++)
+                                effectsP.subExpressions()[k] = effectsP.subExpressions()[k].parametrize(bindings);
+                        }
+                        else
+                            bindings.clear();
+                    }
+                    if(bindings.size())
+                        for(std::map<std::string, Expression>::iterator it = bindings.begin();
+                            it != bindings.end(); it++)
+                            bdgs.insert(std::pair<std::string, Expression>(it->first, it->second));
+                }
+                if(!found)
+                    stateP.subExpressions().push_back(crEffect);
+            }
+
+            maxE = stateP.subExpressions().size();
+            Expression newStateAux;
+            for(int e = 0; e < maxE; e++)
+                if(stateP.subExpressions()[e].toString() != "")
+                    newStateAux.add(stateP.subExpressions()[e]);
+            newState = newStateAux;
+        }
+    }
+    void updateState(Expression const& effects, Expression const& state, Expression & newState)
+    {
+        std::map<std::string, Expression> bdgs;
+        updateState(effects, state, newState, bdgs);
+    }
+
+    bool fp(Expression const& exStart, Expression const& exGoal, Expression & exFinal, Expression const& exCrPlan, Expression & exPlan, int depth,
+            std::vector<Expression> const& availableActions, std::vector<Expression> const& constructedActions)
+    {
+        /* Base case: goal holds at start*/
+        if(holds(exGoal, exStart))
+        {
+            exFinal = exStart;
+            exPlan = exCrPlan;
+            return true;
+        }
+        else if(depth)
+        {
+            unsigned int maxK = constructedActions.size();
+            bool resolved = false;
+            for(unsigned int k = 0; (!resolved) && (k < maxK); k++)
+            {
+                Expression pattern = Expression::parseString("(available-constructed-action ?act ?prec ?eff)")[0];
+                std::map<std::string, Expression> bdgsActMatch;
+                bdgsActMatch = pattern.resolve(constructedActions[k], resolved);
+                if(resolved)
+                {
+                    std::map<std::string, Expression> bdgsPrecMatch;
+                    resolved = holds(bdgsActMatch["?prec"], exStart, bdgsPrecMatch);
+                    if(resolved)
+                    {
+                        Expression exNewState;
+                        updateState(bdgsActMatch["?eff"], exStart, exNewState, bdgsPrecMatch);
+                        resolved = holds(exGoal, exNewState);
+                        if(resolved)
+                        {
+                            exFinal = exNewState;
+                            exPlan = exCrPlan;
+                            exPlan.add(bdgsActMatch["?act"]);
+                        }
+                    }
+                }
+            }
+            if(resolved)
+                return true;
+            depth--;
+            maxK = availableActions.size();
+            for(unsigned int k = 0; (!resolved) && (k < maxK); k++)
+            {
+                Expression pattern = Expression::parseString("(available-action ?act ?prec ?eff)")[0];
+                std::map<std::string, Expression> bdgsActMatch;
+                bdgsActMatch = pattern.resolve(availableActions[k], resolved);
+                if(resolved)
+                {
+                    std::map<std::string, Expression> bdgsPrecMatch;
+                    resolved = holds(bdgsActMatch["?prec"], exStart, bdgsPrecMatch);
+                    if(resolved)
+                    {
+                        Expression exNewState;
+                        updateState(bdgsActMatch["?eff"], exStart, exNewState, bdgsPrecMatch);
+                        Expression exNewPlan = exCrPlan;
+                        exNewPlan.add(bdgsActMatch["?act"]);
+                        resolved = fp(exNewState, exGoal, exFinal, exNewPlan, exPlan, depth, availableActions, constructedActions);
+                    }
+                }
+            }
+            if(resolved)
+                return true;
+        }
+        return false;
+    }
+
     Solution::Ptr ForwardPlanner::plan(problems::PDDL::Ptr prbProblem, contexts::PDDL::Ptr ctxContext, Solution::Ptr solPrior) {
       World::Ptr wdWorld = World::create();
       Prolog::Ptr plProlog = Prolog::create(wdWorld);
-      
+
       /*
       plProlog->addLazyListPredicate("(init-predicate ?predicate)", prbProblem->initExpressions());
       plProlog->addCallbackPredicate("(action ?action)", [ctxContext](unsigned int unIndex) -> Expression {
@@ -90,7 +277,7 @@ namespace gdaplanner {
 		factString += exPrecs.parametrize(mapBdgs).toString() + " ";
 		factString += exEffs.parametrize(mapBdgs).toString() + " ";
 		factString += ")";
-		std::cout << factString << "\n";
+        //std::cout << factString << "\n";
 		plProlog->addFact(factString);
 	      }
 	      
@@ -116,6 +303,12 @@ namespace gdaplanner {
                              "(= ?s ?f)",
                              "(= ?cp ?p)");
       plProlog->addPredicate("(fp ?s ?g ?f ?cp ?p ?d)",
+                             "(available-constructed-action ?act ?prec ?eff)",
+                             "(holds ?prec ?s)",
+                             "(apply ?eff ?s ?f)",
+                             "(holds ?g ?f)",
+                             "(append ?act ?cp ?p)");
+      plProlog->addPredicate("(fp ?s ?g ?f ?cp ?p ?d)",
                              "(1- ?d ?nd)",
                              "(available-action ?act ?prec ?eff)",
                              "(holds ?prec ?s)",
@@ -126,30 +319,40 @@ namespace gdaplanner {
                              "(fp ?s ?g ?f () ?p ?d)");
 
       /* Run fp queries*/
+      std::vector<Expression> initExpressions = prbProblem->initExpressions();
+      unsigned int maxS = initExpressions.size();
+      Expression exGoals = prbProblem->goal().conjunctionToList();
 
-      /*
-      std::cout << "\n\n";
-      Expression f = Expression::parseString("(not (found ?x))")[0];
-      Expression nf = Expression::parseString("(not (found plate0))")[0];
-      bool b;
-      std::map<std::string, Expression> mapBdgs = f.resolve(nf, b);
-      for(std::map<std::string, Expression>::const_iterator it = mapBdgs.begin();
-          it != mapBdgs.end(); it++)
-          std::cout << b << " " << it->first << " " << it->second.toString().c_str() << "\n";
-      */
-      
-      /*
-      plProlog->addPredicate("(do-something ?a ?b)",
-                             "(format \"This: ~a, ~a~%\" ?a ?b)",
-                             "(format \"This again: ~a, ~a~%\" ?a ?b)",
-                             "(member ?a ?b)",
-                             "(format \"Got through!~%\")");
-      
-      Solution solPredicate = plProlog->query("(do-something 2 (1 4 2))");
-      std::cout << solPredicate;
-      */
-      
-      return Solution::create();
+      std::string strPlanQuery = "(fp (";
+      for(unsigned int s = 0; s < maxS; s++)
+          strPlanQuery += initExpressions[s].toString() + " ";
+      strPlanQuery += ") ";
+      strPlanQuery += exGoals.toString();
+      strPlanQuery += " ?f ?p ";
+
+      /* TODO: Need to decide on a depth limit to cut-off at.*/
+      /* Currently, set to 5. Note that because the branching factor is
+         going to be in the order of several tens, we can expect the search space to grow
+         very fast. At a depth of 5 and branching factor of 100, there are 10^10 possible
+         plans!*/
+      /* TODO: Need to decide on a criterion to stop looking for solutions.*/
+      /* Currently, planner stops when the first planner is found, ie. the one
+         with the fewest actions.*/
+      bool shouldStop = false;
+      Solution::Ptr solResult = Solution::create();
+      solResult->setValid(false);
+      for(int depth = 0; (!shouldStop) && (depth < 5); depth++)
+      {
+          std::string strQuery = strPlanQuery + " " + std::to_string(depth) + ")";
+          while((!shouldStop) && solPrior->valid())
+          {
+              *solResult = plProlog->query(strQuery, *solPrior);
+              if(solPrior->valid())
+                  shouldStop = true;
+          }
+      }
+
+      return solResult;
     }
     
     Solution::Ptr ForwardPlanner::plan(problems::Problem::Ptr prbProblem, contexts::Context::Ptr ctxContext, Solution::Ptr solPrior) {

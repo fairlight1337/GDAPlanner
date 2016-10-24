@@ -44,6 +44,7 @@ namespace gdaplanner {
       void declare(std::string strIdentifier, Expression expDeclare);
       void alias(Expression exAlias, std::vector<Expression> vecAliased);
       void action(Expression exPreconditions, Expression exEffects);
+      void action(std::string const& name, std::vector<std::string> const& paramNames, std::vector<std::string> const& paramTypes, std::string const& preconditions, std::string const& effects);
       void state(Expression exState, Expression exPreconditions);
     
       std::vector<State::Ptr> matchingStates(Expression exMatch);    
