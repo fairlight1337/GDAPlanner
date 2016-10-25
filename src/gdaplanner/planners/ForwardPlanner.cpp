@@ -203,54 +203,12 @@ namespace gdaplanner {
       World::Ptr wdWorld = World::create();
       Prolog::Ptr plProlog = Prolog::create(wdWorld);
 
-      /*
-      plProlog->addLazyListPredicate("(init-predicate ?predicate)", prbProblem->initExpressions());
-      plProlog->addCallbackPredicate("(action ?action)", [ctxContext](unsigned int unIndex) -> Expression {
-	  if(unIndex < ctxContext->actionCount()) {
-	    return ctxContext->action(unIndex)->expression();
-	  } else {
-	    throw SolutionsExhausted();
-	  }
-	});
-      
-      Solution solInitPredicates = plProlog->query("(foreach ?a (init-predicate ?a) ?predicates)");
-      
-      if(solInitPredicates.valid()) {
-          std::cout << solInitPredicates;
-      } else {
-          std::cerr << "Invalid: Init predicates" << std::endl;
-      }
-      
-      Solution solActions = plProlog->query("(foreach ?a (action ?a) ?actions)");
-      
-      if(solActions.valid()) {
-          std::cout << solActions;
-      } else {
-          std::cerr << "Invalid: Actions" << std::endl;
-      }
-      */
-
-      /*
-      std::vector<Expression> initExpressions = prbProblem->initExpressions();
-      unsigned int maxK = initExpressions.size();
-      std::cout << "Init expressions: ";
-      for(unsigned int k = 0; k < maxK; k++)
-      {
-          plProlog->addFact(initExpressions[k]);
-          std::cout << " " << initExpressions[k];
-      }
-      std::cout << "\n";
-      Solution solPredicateAux;
-      while(solPredicateAux.valid())
-      {
-          solPredicateAux = plProlog->query("(not (found ?x))", solPredicateAux);
-          if(solPredicateAux.valid())
-              std::cout << solPredicateAux;
-      }
-      */
-
       /* TODO: incorporate object type constraints into action parametrization*/
       std::vector<problems::PDDL::Object> objects = prbProblem->objects();
+
+      std::vector<Expression> availableActions;
+      /* TODO: populate the constructed actions somehow.*/
+      std::vector<Expression> constructedActions;
 
       /* Loop over available actions*/
       unsigned int maxA = ctxContext->actionCount();
@@ -279,6 +237,8 @@ namespace gdaplanner {
 		factString += ")";
         //std::cout << factString << "\n";
 		plProlog->addFact(factString);
+
+        availableActions.push_back(Expression::parseString(factString)[0]);
 	      }
 	      
               bool done = false;
@@ -297,6 +257,8 @@ namespace gdaplanner {
           }
       }
 
+      /*Using the C++ implementation for now*/
+#if 0
       /* Define the fp predicate*/
       plProlog->addPredicate("(fp ?s ?g ?f ?cp ?p ?d)",
                              "(holds ?g ?s)",
@@ -317,11 +279,17 @@ namespace gdaplanner {
                              "(fp ?ns ?g ?f ?ncp ?p ?nd)");
       plProlog->addPredicate("(fp ?s ?g ?f ?p ?d)",
                              "(fp ?s ?g ?f () ?p ?d)");
+#endif
 
       /* Run fp queries*/
       std::vector<Expression> initExpressions = prbProblem->initExpressions();
       unsigned int maxS = initExpressions.size();
+      Expression exStart;
+      for(unsigned int s = 0; s < maxS; s++)
+          exStart.add(initExpressions[s]);
       Expression exGoals = prbProblem->goal().conjunctionToList();
+      Expression exFinal;
+      Expression exPlan;
 
       std::string strPlanQuery = "(fp (";
       for(unsigned int s = 0; s < maxS; s++)
@@ -341,15 +309,16 @@ namespace gdaplanner {
       bool shouldStop = false;
       Solution::Ptr solResult = Solution::create();
       solResult->setValid(false);
-      for(int depth = 0; (!shouldStop) && (depth < 5); depth++)
+      for(int depth = 1; (!shouldStop) && (depth < 5); depth++)
       {
-          std::string strQuery = strPlanQuery + " " + std::to_string(depth) + ")";
-          while((!shouldStop) && solPrior->valid())
-          {
-              *solResult = plProlog->query(strQuery, *solPrior);
-              if(solPrior->valid())
-                  shouldStop = true;
-          }
+          shouldStop = fp(exStart, exGoals, exFinal, Expression::parseString("()")[0], exPlan, depth, availableActions, constructedActions);
+      }
+
+      if(shouldStop)
+      {
+          solResult->bindings()["?p"] = exPlan;
+          solResult->bindings()["?f"] = exFinal;
+          solResult->setValid(true);
       }
 
       return solResult;
