@@ -12,7 +12,6 @@ namespace gdaplanner {
     ForwardPlanner::~ForwardPlanner() {
     }
     
-
     bool holds(Expression const& goal, Expression const& state, std::map<std::string, Expression> & bdgs)
     {
         Expression goalP = goal.parametrize(bdgs);
@@ -159,6 +158,7 @@ namespace gdaplanner {
                     resolved = holds(bdgsActMatch["?prec"], exStart, bdgsPrecMatch);
                     if(resolved)
                     {
+	      std::cout << depth << "\t" << availableActions[k].toString() << std::endl;
                         Expression exNewState;
                         updateState(bdgsActMatch["?eff"], exStart, exNewState, bdgsPrecMatch);
                         resolved = holds(exGoal, exNewState);
@@ -203,7 +203,8 @@ namespace gdaplanner {
     Solution::Ptr ForwardPlanner::plan(problems::PDDL::Ptr prbProblem, contexts::PDDL::Ptr ctxContext, __attribute__((unused)) Solution::Ptr solPrior) {
       World::Ptr wdWorld = World::create();
       Prolog::Ptr plProlog = Prolog::create(wdWorld);
-
+      std::cout << *ctxContext << std::endl;
+      std::cout << *prbProblem << std::endl;
       /* TODO: incorporate object type constraints into action parametrization*/
       std::vector<problems::PDDL::Object> objects = prbProblem->objects();
 

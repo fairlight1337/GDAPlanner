@@ -1,12 +1,12 @@
 (define (domain tablesetting)
   (:requirements :typing)
-  (:types object location)
+  (:types object location hand)
   (:predicates (at ?object - object ?location - location))
   (:constants)
   (:functions (location-of ?object) - location
               (total-cost) - number)
   (:action pick-object
-	   :parameters (?object - object)
+	   :parameters (?object - object ?hand - hand)
 	   :precondition (and (found-object ?object)
 			      (free-hand ?hand))
 	   :effect (and (= (location-of ?object) ?location)
