@@ -1,16 +1,12 @@
-(define (domain tablesetting)
+(define (domain simple-tablesetting)
   (:requirements :typing)
   (:types object location hand)
-  (:predicates (at ?object - object ?location - location))
-  (:constants)
-  (:functions (location-of ?object) - location
-              (total-cost) - number)
   (:action pick-object
-	   :parameters (?object - object ?hand - hand)
+	   :parameters (?object - object)
 	   :precondition (and (found ?object)
-			      (free-hand ?hand))
-	   :effect (and (= (location-of ?object) ?location)
-			(not (at ?object ?location))
+			      (free-hand ?hand)
+                              (at ?object ?location))
+	   :effect (and (not (at ?object ?location))
 			(in-hand ?object ?hand)
 			(not (free-hand ?hand))))
   (:action place-object
@@ -23,6 +19,4 @@
   (:action find-object
 	   :parameters (?object - object)
 	   :precondition (not (found ?object))
-	   :effect (and (found ?object)
-			(= (location-of ?object) ?location)
-			(at ?object ?location))))
+	   :effect (and (found ?object))))
