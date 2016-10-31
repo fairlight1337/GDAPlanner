@@ -127,6 +127,7 @@ namespace gdaplanner {
             newState = newStateAux;
         }
     }
+    
     void updateState(Expression const& effects, Expression const& state, Expression & newState)
     {
         std::map<std::string, Expression> bdgs;
@@ -199,7 +200,7 @@ namespace gdaplanner {
         return false;
     }
 
-    Solution::Ptr ForwardPlanner::plan(problems::PDDL::Ptr prbProblem, contexts::PDDL::Ptr ctxContext, Solution::Ptr solPrior) {
+    Solution::Ptr ForwardPlanner::plan(problems::PDDL::Ptr prbProblem, contexts::PDDL::Ptr ctxContext, __attribute__((unused)) Solution::Ptr solPrior) {
       World::Ptr wdWorld = World::create();
       Prolog::Ptr plProlog = Prolog::create(wdWorld);
 
@@ -325,7 +326,22 @@ namespace gdaplanner {
     }
     
     Solution::Ptr ForwardPlanner::plan(problems::Problem::Ptr prbProblem, contexts::Context::Ptr ctxContext, Solution::Ptr solPrior) {
-      return this->plan(std::dynamic_pointer_cast<problems::PDDL>(prbProblem), std::dynamic_pointer_cast<contexts::PDDL>(ctxContext), solPrior);
+      problems::PDDL::Ptr prbPDDLProblem = std::dynamic_pointer_cast<problems::PDDL>(prbProblem);
+      contexts::PDDL::Ptr ctxPDDLContext = std::dynamic_pointer_cast<contexts::PDDL>(ctxContext);
+      
+      if(prbPDDLProblem) {
+	if(ctxPDDLContext) {
+	  std::cout << "Converted request into PDDL compatible data structures" << std::endl;
+	  
+	  return this->plan(prbPDDLProblem, ctxPDDLContext, solPrior);
+	} else {
+	  std::cerr << "Error: Non-PDDL context in PDDL planner" << std::endl;
+	}
+      } else {
+	std::cerr << "Error: Non-PDDL problem in PDDL planner" << std::endl;
+      }
+      
+      return nullptr;
     }
   }
 }
