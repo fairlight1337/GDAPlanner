@@ -98,11 +98,10 @@ namespace gdaplanner {
     Expression simpleExpression(std::string strSource);
     
     template<class T>
-      bool plan(problems::Problem::Ptr prbProblem) {
+      Solution::Ptr plan(problems::Problem::Ptr prbProblem) {
       Planner::Ptr prPlanner = T::create();
-      prPlanner->plan(prbProblem, this->currentContext());
       
-      return true;
+      return prPlanner->plan(prbProblem, this->currentContext());
     }
     
     template<class ... Args>

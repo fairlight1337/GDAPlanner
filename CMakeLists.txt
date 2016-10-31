@@ -37,13 +37,16 @@ target_link_libraries(prolog_tool
 # Tests
 enable_testing()
 
+add_custom_target(make-bin-tests-directory ALL
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${EXECUTABLE_OUTPUT_PATH}/tests)
+
 macro(AddTests)
   foreach(name ${ARGN})
-    add_executable(${name} src/tests/${name}.cpp)
-    target_link_libraries(${name} ${PROJECT_NAME})
+    add_executable(tests/${name} src/tests/${name}.cpp)
+    target_link_libraries(tests/${name} ${PROJECT_NAME})
     
-    add_test(NAME ${name}
-      COMMAND ${EXECUTABLE_OUTPUT_PATH}/${name})
+    add_test(NAME tests/${name}
+      COMMAND ${EXECUTABLE_OUTPUT_PATH}/tests/${name})
   endforeach(name)
 endmacro(AddTests)
 

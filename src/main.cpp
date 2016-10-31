@@ -18,7 +18,16 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char** argv) 
     problems::Problem::Ptr prbProblem = gdapPlanner->readProblemFile<loaders::PDDL>("../data/tablesetting-problem.pddl");
     
     if(prbProblem) {
-      gdapPlanner->plan<planners::ForwardPlanner>(prbProblem);
+      std::cout << "Problem parsed, forwarding it to the planner" << std::endl;
+      Solution::Ptr solSolution = gdapPlanner->plan<planners::ForwardPlanner>(prbProblem);
+      std::cout << "Planner concluded" << std::endl;
+      
+      if(solSolution && solSolution->valid()) {
+	std::cout << "Solution:" << std::endl;
+	std::cout << *solSolution << std::endl;
+      } else {
+	std::cerr << "No solution" << std::endl;
+      }
     } else {
       std::cerr << "Failed to parse PDDL problem" << std::endl;
     }
