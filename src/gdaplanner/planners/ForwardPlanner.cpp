@@ -133,7 +133,7 @@ namespace gdaplanner {
         updateState(effects, state, newState, bdgs);
     }
 
-    bool fp(Expression const& exStart, Expression const& exGoal, Expression & exFinal, Expression const& exCrPlan, Expression & exPlan, int depth,
+    bool fp(Expression const& exStart, Expression const& exGoal, Expression & exFinal, Expression const& exCrPlan, Expression & exPlan, Expression & exIStates, int depth,
             std::vector<Expression> const& availableActions, std::vector<Expression> const& constructedActions)
     {
         /* Base case: goal holds at start*/
@@ -158,7 +158,6 @@ namespace gdaplanner {
                     resolved = holds(bdgsActMatch["?prec"], exStart, bdgsPrecMatch);
                     if(resolved)
                     {
-	      std::cout << depth << "\t" << availableActions[k].toString() << std::endl;
                         Expression exNewState;
                         updateState(bdgsActMatch["?eff"], exStart, exNewState, bdgsPrecMatch);
                         resolved = holds(exGoal, exNewState);
@@ -167,6 +166,7 @@ namespace gdaplanner {
                             exFinal = exNewState;
                             exPlan = exCrPlan;
                             exPlan.add(bdgsActMatch["?act"]);
+                            exIStates.add(exFinal);
                         }
                     }
                 }
@@ -190,7 +190,11 @@ namespace gdaplanner {
                         updateState(bdgsActMatch["?eff"], exStart, exNewState, bdgsPrecMatch);
                         Expression exNewPlan = exCrPlan;
                         exNewPlan.add(bdgsActMatch["?act"]);
-                        resolved = fp(exNewState, exGoal, exFinal, exNewPlan, exPlan, depth, availableActions, constructedActions);
+                        Expression exNewIStates = exIStates;
+                        exNewIStates.add(exNewState);
+                        resolved = fp(exNewState, exGoal, exFinal, exNewPlan, exPlan, exNewIStates, depth, availableActions, constructedActions);
+                        if(resolved)
+                            exIStates = exNewIStates;
                     }
                 }
             }
@@ -203,8 +207,6 @@ namespace gdaplanner {
     Solution::Ptr ForwardPlanner::plan(problems::PDDL::Ptr prbProblem, contexts::PDDL::Ptr ctxContext, __attribute__((unused)) Solution::Ptr solPrior) {
       World::Ptr wdWorld = World::create();
       Prolog::Ptr plProlog = Prolog::create(wdWorld);
-      std::cout << *ctxContext << std::endl;
-      std::cout << *prbProblem << std::endl;
       /* TODO: incorporate object type constraints into action parametrization*/
       std::vector<problems::PDDL::Object> objects = prbProblem->objects();
 
@@ -237,7 +239,6 @@ namespace gdaplanner {
 		factString += exPrecs.parametrize(mapBdgs).toString() + " ";
 		factString += exEffs.parametrize(mapBdgs).toString() + " ";
 		factString += ")";
-        //std::cout << factString << "\n";
 		plProlog->addFact(factString);
 
         availableActions.push_back(Expression::parseString(factString)[0]);
@@ -292,6 +293,7 @@ namespace gdaplanner {
       Expression exGoals = prbProblem->goal().conjunctionToList();
       Expression exFinal;
       Expression exPlan;
+      Expression exIStates;
 
       std::string strPlanQuery = "(fp (";
       for(unsigned int s = 0; s < maxS; s++)
@@ -313,13 +315,14 @@ namespace gdaplanner {
       solResult->setValid(false);
       for(int depth = 1; (!shouldStop) && (depth < 5); depth++)
       {
-          shouldStop = fp(exStart, exGoals, exFinal, Expression::parseString("()")[0], exPlan, depth, availableActions, constructedActions);
+          shouldStop = fp(exStart, exGoals, exFinal, Expression::parseString("()")[0], exPlan, exIStates, depth, availableActions, constructedActions);
       }
 
       if(shouldStop)
       {
           solResult->bindings()["?p"] = exPlan;
           solResult->bindings()["?f"] = exFinal;
+          solResult->bindings()["?h"] = exIStates;
           solResult->setValid(true);
       }
 
