@@ -467,6 +467,26 @@ namespace gdaplanner {
     return mapResolution;
   }
 
+  std::map<std::string, Expression> Expression::resolveTo(Expression const& exOther, bool& bResolved) const
+  {
+      std::map<std::string, Expression> retq = this->resolve(exOther, bResolved);
+
+      if(bResolved)
+      {
+          std::vector<std::string> varNames;
+          exOther.getVarNames(varNames);
+          unsigned int maxK = varNames.size();
+          for(unsigned int k = 0; k < maxK; k++)
+              retq.erase(varNames[k]);
+          Expression goal = this->parametrize(retq);
+          goal.resolve(exOther, bResolved, true);
+          if(!bResolved)
+              retq.clear();
+      }
+
+      return retq;
+  }
+
   bool Expression::matchEx(Expression const& exMatch, std::map<std::string, Expression>& mapResolution) const {
     bool bResolved;
     mapResolution = this->resolve(exMatch, bResolved);

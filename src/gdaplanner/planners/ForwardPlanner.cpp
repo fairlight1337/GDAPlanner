@@ -11,11 +11,11 @@ namespace gdaplanner {
     
     ForwardPlanner::~ForwardPlanner() {
     }
-    
+
     bool holds(Expression const& goal, Expression const& state, std::map<std::string, Expression> & bdgs)
     {
         Expression goalP = goal.parametrize(bdgs);
-        Expression stateP = state.parametrize(bdgs);
+        Expression stateP = state;// = state.parametrize(bdgs);
 
         std::vector<Expression> exGoalAuxVec; exGoalAuxVec.clear(); exGoalAuxVec.push_back(goalP);
         std::vector<Expression> exStateAuxVec; exStateAuxVec.clear(); exStateAuxVec.push_back(stateP);
@@ -37,7 +37,7 @@ namespace gdaplanner {
                 for(int s = 0; (!found) && (s < maxS); s++)
                 {
                     std::map<std::string, Expression> newBindings; newBindings.clear();
-                    newBindings = goalP.subExpressions()[g].resolve(stateP.subExpressions()[s], found);
+                    newBindings = goalP.subExpressions()[g].resolveTo(stateP.subExpressions()[s], found);
                     for(int k = 0; found && (k < maxG); k++)
                     {
                         goalP.subExpressions()[k] = goalP.subExpressions()[k].parametrize(newBindings);
@@ -65,7 +65,8 @@ namespace gdaplanner {
 
     void updateState(Expression const& effects, Expression const& state, Expression & newState, std::map<std::string, Expression> & bdgs)
     {
-        Expression stateP = state.parametrize(bdgs);
+        //Expression stateP = state.parametrize(bdgs);
+        Expression stateP = state;
         Expression effectsP = effects.parametrize(bdgs);
         std::vector<Expression> exEffectsAuxVec; exEffectsAuxVec.clear(); exEffectsAuxVec.push_back(effectsP);
         std::vector<Expression> exStateAuxVec; exStateAuxVec.clear(); exStateAuxVec.push_back(stateP);
@@ -89,7 +90,7 @@ namespace gdaplanner {
                 for(int s = 0; (!found) && (s < maxS); s++)
                 {
                     std::map<std::string, Expression> bindings; bindings.clear();
-                    bindings = crEffect.resolve(stateP.subExpressions()[s], found);
+                    bindings = crEffect.resolveTo(stateP.subExpressions()[s], found);
                     if(found)
                         for(int k = 0; k < maxE; k++)
                             effectsP.subExpressions()[k] = effectsP.subExpressions()[k].parametrize(bindings);
@@ -97,7 +98,7 @@ namespace gdaplanner {
                     {
                         bindings.clear();
                         bool negated = false;
-                        bindings = crNegEffect.resolve(stateP.subExpressions()[s], negated);
+                        bindings = crNegEffect.resolveTo(stateP.subExpressions()[s], negated);
                         if(negated)
                         {
                             crEffect = crEffect.parametrize(bindings);
@@ -232,18 +233,18 @@ namespace gdaplanner {
               std::map<std::string, Expression> mapBdgs;
               for(unsigned int v = 0; v < maxV; v++)
                   mapBdgs[varNames[v]] = Expression::parseString(objects[objIndex[v]].strName)[0];
-	      
-	      if(ctxContext->actionArgumentsValid(exPrExp.parametrize(mapBdgs), prbProblem)) {
-		std::string factString = "(available-action ";
-		factString += exPrExp.parametrize(mapBdgs).toString() + " ";
-		factString += exPrecs.parametrize(mapBdgs).toString() + " ";
-		factString += exEffs.parametrize(mapBdgs).toString() + " ";
-		factString += ")";
-		plProlog->addFact(factString);
 
-        availableActions.push_back(Expression::parseString(factString)[0]);
-	      }
-	      
+              if(ctxContext->actionArgumentsValid(exPrExp.parametrize(mapBdgs), prbProblem)) {
+                  std::string factString = "(available-action ";
+                  factString += exPrExp.parametrize(mapBdgs).toString() + " ";
+                  factString += exPrecs.parametrize(mapBdgs).toString() + " ";
+                  factString += exEffs.parametrize(mapBdgs).toString() + " ";
+                  factString += ")";
+                  plProlog->addFact(factString);
+
+                  availableActions.push_back(Expression::parseString(factString)[0]);
+                }
+
               bool done = false;
               for(unsigned int v = maxV; !done; )
                   if(!v)
