@@ -414,6 +414,16 @@ namespace gdaplanner {
 	
 	\return Map of variable to value bindings */
     std::map<std::string, Expression> resolve(Expression const& exOther, bool& bResolved, bool bExact = false) const;
+
+    /** \brief Resolves this instance against another instance without binding variables from the other instance
+
+      Examples: Expression("(at p o)").resolveTo(Expression("(at p ?x)"), bResolved)
+      will set bResolved to false, as it's impossible to unify the expressions without binding the ?x variable
+      from the exOther parameter. However, Expression("(at p ?y)").resolveTo(Expression("(at p ?x)"), bResolved)
+      sets bResolved to true, because the expressions can be unified by ?y=?x, and ?y is a variable appearing in
+      this, instead of exOther.
+      */
+    std::map<std::string, Expression> resolveTo(Expression const& exOther, bool& bResolved) const;
     
     bool matchEx(Expression const& exMatch, std::map<std::string, Expression>& mapResolution) const;
     
