@@ -85,6 +85,7 @@ namespace gdaplanner {
             {
                 Expression crEffect = effectsP.subExpressions()[e];
                 Expression crNegEffect = crEffect.negate();
+                bool positive = (crEffect.subExpressions().size() && crEffect.subExpressions()[0].toString() != "not");
                 int maxS = stateP.subExpressions().size();
                 bool found = false;
                 for(int s = 0; (!found) && (s < maxS); s++)
@@ -115,7 +116,7 @@ namespace gdaplanner {
                             it != bindings.end(); it++)
                             bdgs.insert(std::pair<std::string, Expression>(it->first, it->second));
                 }
-                if(!found)
+                if((!found) && (positive))
                     stateP.subExpressions().push_back(crEffect);
             }
 
