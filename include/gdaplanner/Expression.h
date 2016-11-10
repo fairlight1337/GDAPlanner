@@ -417,13 +417,16 @@ namespace gdaplanner {
 
     /** \brief Resolves this instance against another instance without binding variables from the other instance
 
+      The noVarUnif parameter, if true, prevents variables from either expression to unify with constant values
+      from the other. In this case, expressions can only unify if variables can be matched to variables.
+
       Examples: Expression("(at p o)").resolveTo(Expression("(at p ?x)"), bResolved)
       will set bResolved to false, as it's impossible to unify the expressions without binding the ?x variable
       from the exOther parameter. However, Expression("(at p ?y)").resolveTo(Expression("(at p ?x)"), bResolved)
       sets bResolved to true, because the expressions can be unified by ?y=?x, and ?y is a variable appearing in
       this, instead of exOther.
       */
-    std::map<std::string, Expression> resolveTo(Expression const& exOther, bool& bResolved) const;
+    std::map<std::string, Expression> resolveTo(Expression const& exOther, bool& bResolved, bool noVarUnif = false) const;
     
     bool matchEx(Expression const& exMatch, std::map<std::string, Expression>& mapResolution) const;
     

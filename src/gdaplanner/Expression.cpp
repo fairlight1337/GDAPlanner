@@ -467,7 +467,7 @@ namespace gdaplanner {
     return mapResolution;
   }
 
-  std::map<std::string, Expression> Expression::resolveTo(Expression const& exOther, bool& bResolved) const
+  std::map<std::string, Expression> Expression::resolveTo(Expression const& exOther, bool& bResolved, bool noVarUnif) const
   {
       std::map<std::string, Expression> retq = this->resolve(exOther, bResolved);
 
@@ -478,6 +478,15 @@ namespace gdaplanner {
           unsigned int maxK = varNames.size();
           for(unsigned int k = 0; k < maxK; k++)
               retq.erase(varNames[k]);
+          if(noVarUnif)
+              for(std::map<std::string, Expression>::iterator it = retq.begin();
+                  it != retq.end(); )
+              {
+                  std::map<std::string, Expression>::iterator cit = it;
+                  it++;
+                  if(!it->second.isVariable())
+                      retq.erase(cit);
+              }
           Expression goal = this->parametrize(retq);
           goal.resolve(exOther, bResolved, true);
           if(!bResolved)

@@ -13,9 +13,9 @@
 namespace gdaplanner {
   namespace planners {
 
-  bool holds(Expression const& goal, Expression const& state);
+  bool holds(Expression const& goal, Expression const& state, bool noVarUnif = false);
   void updateState(Expression const& effects, Expression const& state, Expression & newState);
-  bool holds(Expression const& goal, Expression const& state, std::map<std::string, Expression> & bdgs);
+  bool holds(Expression const& goal, Expression const& state, std::map<std::string, Expression> & bdgs, bool noVarUnif = false);
   void updateState(Expression const& effects, Expression const& state, Expression & newState, std::map<std::string, Expression> & bdgs);
 
     class ForwardPlanner : public Planner {
