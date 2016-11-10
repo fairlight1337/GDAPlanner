@@ -12,7 +12,7 @@ namespace gdaplanner {
     ForwardPlanner::~ForwardPlanner() {
     }
 
-    bool holds(Expression const& goal, Expression const& state, std::map<std::string, Expression> & bdgs)
+    bool holds(Expression const& goal, Expression const& state, std::map<std::string, Expression> & bdgs, bool noVarUnif)
     {
         Expression goalP = goal.parametrize(bdgs);
         Expression stateP = state;// = state.parametrize(bdgs);
@@ -34,10 +34,11 @@ namespace gdaplanner {
             for(int g = 0; allMatch && (g < maxG); g++)
             {
                 bool found = false;
+                bool positive = (goalP.subExpressions()[g].subExpressions().size() && goalP.subExpressions()[g].subExpressions()[0].toString() != "not");
                 for(int s = 0; (!found) && (s < maxS); s++)
                 {
                     std::map<std::string, Expression> newBindings; newBindings.clear();
-                    newBindings = goalP.subExpressions()[g].resolveTo(stateP.subExpressions()[s], found);
+                    newBindings = goalP.subExpressions()[g].resolveTo(stateP.subExpressions()[s], found, noVarUnif);
                     for(int k = 0; found && (k < maxG); k++)
                     {
                         goalP.subExpressions()[k] = goalP.subExpressions()[k].parametrize(newBindings);
@@ -46,7 +47,7 @@ namespace gdaplanner {
                         it != newBindings.end(); it++)
                         collBindings.insert(std::pair<std::string, Expression>(it->first, it->second));
                 }
-                allMatch = found;
+                allMatch = (found || (!positive));
             }
             if(allMatch)
                 for(std::map<std::string, Expression>::const_iterator it = collBindings.begin();
@@ -57,10 +58,10 @@ namespace gdaplanner {
         }
         return false;
     }
-    bool holds(Expression const& goal, Expression const& state)
+    bool holds(Expression const& goal, Expression const& state, bool noVarUnif)
     {
         std::map<std::string, Expression> bdgs;
-        return holds(goal, state, bdgs);
+        return holds(goal, state, bdgs, noVarUnif);
     }
 
     void updateState(Expression const& effects, Expression const& state, Expression & newState, std::map<std::string, Expression> & bdgs)
